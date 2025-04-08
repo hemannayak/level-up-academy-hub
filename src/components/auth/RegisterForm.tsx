@@ -1,14 +1,19 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { EyeIcon, EyeOffIcon, UserPlus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const RegisterForm = () => {
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -60,18 +65,44 @@ const RegisterForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validate()) {
       setIsLoading(true);
       
-      // Simulate API call
-      setTimeout(() => {
-        console.log("Registration data:", formData);
+      try {
+        const { error, data } = await signUp(
+          formData.email,
+          formData.password,
+          { full_name: formData.fullName }
+        );
+        
+        if (error) {
+          toast({
+            title: "Registration failed",
+            description: error.message,
+            variant: "destructive",
+          });
+          console.error("Registration error:", error);
+        } else {
+          toast({
+            title: "Registration successful!",
+            description: "Please check your email to confirm your account.",
+            variant: "default",
+          });
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+        toast({
+          title: "An unexpected error occurred",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+      } finally {
         setIsLoading(false);
-        // Here you would typically handle the registration with the backend
-      }, 1500);
+      }
     }
   };
 
