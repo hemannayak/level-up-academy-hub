@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { EyeIcon, EyeOffIcon, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const RegisterForm = () => {
   const { signUp } = useAuth();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -79,26 +81,36 @@ const RegisterForm = () => {
         );
         
         if (error) {
-          toast({
+          uiToast({
             title: "Registration failed",
             description: error.message,
             variant: "destructive",
           });
+          toast.error("Registration failed", {
+            description: error.message,
+          });
           console.error("Registration error:", error);
         } else {
-          toast({
+          uiToast({
             title: "Registration successful!",
             description: "Please check your email to confirm your account.",
             variant: "default",
           });
+          toast.success("Registration successful!", {
+            description: "Please check your email to confirm your account.",
+          });
+          console.log("Registration successful:", data);
           navigate("/login");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Unexpected error:", error);
-        toast({
+        uiToast({
           title: "An unexpected error occurred",
-          description: "Please try again later",
+          description: error.message || "Please try again later",
           variant: "destructive",
+        });
+        toast.error("An unexpected error occurred", {
+          description: "Please try again later",
         });
       } finally {
         setIsLoading(false);
