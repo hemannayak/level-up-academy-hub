@@ -1,12 +1,15 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { EyeIcon, EyeOffIcon, LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -14,17 +17,52 @@ const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const { toast: uiToast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login attempt with:", { email, password, rememberMe });
+    try {
+      const { data, error } = await signIn(email, password);
+      
+      if (error) {
+        uiToast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        toast.error("Login failed", {
+          description: error.message,
+        });
+        console.error("Login error:", error);
+      } else {
+        uiToast({
+          title: "Login successful!",
+          description: "Welcome back!",
+          variant: "default",
+        });
+        toast.success("Login successful!", {
+          description: "Welcome back!",
+        });
+        console.log("Login successful:", data);
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      console.error("Unexpected error:", error);
+      uiToast({
+        title: "An unexpected error occurred",
+        description: error.message || "Please try again later",
+        variant: "destructive",
+      });
+      toast.error("An unexpected error occurred", {
+        description: "Please try again later",
+      });
+    } finally {
       setIsLoading(false);
-      // Here you would typically handle authentication with the backend
-    }, 1500);
+    }
   };
 
   return (
