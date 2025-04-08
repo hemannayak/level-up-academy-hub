@@ -20,9 +20,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Make sure environment variables are properly loaded
-  define: {
-    __SUPABASE_URL__: JSON.stringify(process.env.VITE_SUPABASE_URL),
-    __SUPABASE_ANON_KEY__: JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
-  },
+  envPrefix: "VITE_",
 }));
