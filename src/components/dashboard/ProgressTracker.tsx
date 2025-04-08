@@ -1,0 +1,101 @@
+
+import { BarChart2, ChevronRight, TrendingUp } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+
+interface Course {
+  id: number;
+  title: string;
+  progress: number;
+  lastActivity: string;
+}
+
+interface Props {
+  courses: Course[];
+  totalXP: number;
+  level: number;
+  nextLevelXP: number;
+  currentXP: number;
+}
+
+const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Props) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center">
+          <BarChart2 className="h-5 w-5 text-levelup-purple mr-2" />
+          <h2 className="text-xl font-bold">Your Progress</h2>
+        </div>
+        <Link to="/courses">
+          <Button variant="ghost" size="sm" className="text-levelup-gray">
+            All Courses <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
+          <div className="text-sm text-levelup-gray mb-1">Current Level</div>
+          <div className="text-2xl font-bold text-levelup-purple flex items-center">
+            Level {level}
+            <TrendingUp className="ml-2 h-4 w-4" />
+          </div>
+        </div>
+        
+        <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
+          <div className="text-sm text-levelup-gray mb-1">Total XP</div>
+          <div className="text-2xl font-bold text-levelup-purple">{totalXP} XP</div>
+        </div>
+        
+        <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
+          <div className="text-sm text-levelup-gray mb-1">Courses in Progress</div>
+          <div className="text-2xl font-bold text-levelup-purple">{courses.length}</div>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <div className="flex justify-between text-sm mb-1">
+          <span className="font-medium">Level Progress</span>
+          <span>{currentXP}/{nextLevelXP} XP</span>
+        </div>
+        <Progress value={(currentXP / nextLevelXP) * 100} className="h-3" />
+        <div className="text-xs text-right mt-1 text-levelup-gray">
+          {nextLevelXP - currentXP} XP until Level {level + 1}
+        </div>
+      </div>
+
+      <h3 className="font-bold mb-4">Active Courses</h3>
+      
+      <div className="space-y-4">
+        {courses.map((course) => (
+          <div key={course.id} className="border rounded-lg p-4 hover:border-levelup-purple transition-colors">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium">{course.title}</h4>
+              <span className="text-sm text-levelup-gray">{course.progress}% complete</span>
+            </div>
+            <Progress value={course.progress} className="h-2 mb-2" />
+            <div className="text-xs text-levelup-gray">
+              Last activity: {course.lastActivity}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {courses.length === 0 && (
+        <div className="text-center py-8 text-levelup-gray">
+          You haven't started any courses yet.
+          <div className="mt-4">
+            <Link to="/courses">
+              <Button className="bg-levelup-purple hover:bg-levelup-purple/90">
+                Browse Courses
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProgressTracker;
