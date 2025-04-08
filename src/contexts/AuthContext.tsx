@@ -3,8 +3,16 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { createClient, Session, User, SupabaseClient } from "@supabase/supabase-js";
 
 // Initialize the Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Debug logging to check if environment variables are loaded
+console.log("Supabase URL available:", !!supabaseUrl);
+console.log("Supabase Anon Key available:", !!supabaseAnonKey);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("Supabase environment variables are missing!");
+}
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
