@@ -87,12 +87,12 @@ const FeaturedCourses = () => {
         </div>
         
         <div className="mt-16 text-center bg-gradient-to-r from-levelup-light-purple via-white to-levelup-light-purple p-8 rounded-xl shadow-sm">
-          <h3 className="heading-md mb-4">Ready to start learning?</h3>
+          <h3 className="heading-md mb-4 text-levelup-purple">Ready to start learning?</h3>
           <p className="text-levelup-gray mb-6 max-w-2xl mx-auto">
             Join thousands of students who are already leveling up their skills and advancing their careers with our interactive courses.
           </p>
           <Link to="/register">
-            <Button className="bg-levelup-purple hover:bg-levelup-purple/90 px-8 py-6 text-lg">
+            <Button className="bg-levelup-purple hover:bg-levelup-purple/90 px-8 py-6 text-lg text-white">
               Sign Up Now
             </Button>
           </Link>
