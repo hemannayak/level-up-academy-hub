@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProgressTracker from "@/components/dashboard/ProgressTracker";
@@ -14,7 +15,8 @@ import {
   Settings,
   Bell,
   User,
-  Calendar 
+  Calendar,
+  Loader2 
 } from "lucide-react";
 
 // Mock data
@@ -134,6 +136,38 @@ const recommendedCourses = [
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const { user, supabase } = useAuth();
+  const [profileData, setProfileData] = useState<{ full_name: string | null } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile data:", error);
+        } else {
+          setProfileData(data);
+        }
+      } catch (error) {
+        console.error("Error in profile fetch:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [user, supabase]);
+
+  // Get the display name: full_name from profile, or email username, or default
+  const displayName = profileData?.full_name || user?.email?.split('@')[0] || 'User';
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -144,10 +178,19 @@ const Dashboard = () => {
           {/* Dashboard Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-2xl font-bold mb-1">Welcome back, Alex!</h1>
-              <p className="text-levelup-gray">
-                Track your progress and continue your learning journey.
-              </p>
+              {loading ? (
+                <div className="flex items-center">
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <p>Loading user data...</p>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold mb-1">Welcome back, {displayName}!</h1>
+                  <p className="text-levelup-gray">
+                    Track your progress and continue your learning journey.
+                  </p>
+                </>
+              )}
             </div>
             <div className="flex space-x-2 mt-4 md:mt-0">
               <Button variant="outline" size="icon">
