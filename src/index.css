@@ -91,7 +91,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-background text-foreground font-sans font-semibold;
   }
 }
 
@@ -101,18 +101,18 @@
   }
   
   .heading-xl {
-    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight font-mono;
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight font-sans;
   }
   
   .heading-lg {
-    @apply text-3xl md:text-4xl font-bold font-mono;
+    @apply text-3xl md:text-4xl font-bold font-sans;
   }
   
   .heading-md {
-    @apply text-2xl md:text-3xl font-bold font-mono;
+    @apply text-2xl md:text-3xl font-bold font-sans;
   }
   
   .heading-sm {
-    @apply text-xl md:text-2xl font-bold font-mono;
+    @apply text-xl md:text-2xl font-bold font-sans;
   }
 }

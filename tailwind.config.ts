@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,7 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				mono: ['Courier New', 'monospace'],
+				sans: ['Arial', 'Helvetica', 'sans-serif'],
+				mono: ['Arial', 'Helvetica', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -66,15 +66,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// LevelUp Learning custom colors with black and white theme
 				levelup: {
-					purple: '#E41212', // Changed to red
-					'light-purple': '#FFFFFF', // Changed to white
-					'dark-blue': '#000000', // Changed to black
-					green: '#E41212', // Changed to red
-					orange: '#E41212', // Changed to red
-					gray: '#333333',  // Dark gray
-					'light-gray': '#121212', // Very dark gray
+					purple: '#E41212',
+					'light-purple': '#FFFFFF',
+					'dark-blue': '#000000',
+					green: '#E41212',
+					orange: '#E41212',
+					gray: '#333333',
+					'light-gray': '#121212',
 				}
 			},
 			borderRadius: {
