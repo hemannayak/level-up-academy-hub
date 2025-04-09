@@ -63,15 +63,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// LevelUp Learning custom colors
+				// LevelUp Learning custom colors with blackrock theme
 				levelup: {
 					purple: '#8B5CF6',
 					'light-purple': '#E5DEFF',
-					'dark-blue': '#1E293B',
+					'dark-blue': '#1A1F2C', // Updated to blackrock dark blue
 					green: '#10B981',
 					orange: '#F97316',
-					gray: '#6B7280',
-					'light-gray': '#F3F4F6',
+					gray: '#403E43',  // Updated to blackrock charcoal gray
+					'light-gray': '#221F26', // Updated to blackrock dark charcoal
 				}
 			},
 			borderRadius: {
