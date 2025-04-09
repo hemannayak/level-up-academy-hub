@@ -35,7 +35,7 @@ const Profile = () => {
         if (!user) return;
 
         const { data, error } = await supabase
-          .from("profiles")
+          .from('profiles')
           .select("id, full_name, avatar_url")
           .eq("id", user.id)
           .single();
@@ -45,7 +45,7 @@ const Profile = () => {
         }
 
         if (data) {
-          setProfile(data);
+          setProfile(data as ProfileData);
           setFullName(data.full_name || "");
           setAvatarUrl(data.avatar_url || "");
         }
@@ -99,7 +99,7 @@ const Profile = () => {
 
       // Update profile
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({
           full_name: fullName,
           avatar_url: newAvatarUrl,

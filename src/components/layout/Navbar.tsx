@@ -26,10 +26,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
+interface ProfileData {
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const [profileData, setProfileData] = useState<{ full_name?: string, avatar_url?: string } | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -48,7 +53,7 @@ const Navbar = () => {
             .single();
           
           if (error) throw error;
-          setProfileData(data);
+          setProfileData(data as ProfileData);
         } catch (error) {
           console.error('Error fetching user profile:', error);
         }
