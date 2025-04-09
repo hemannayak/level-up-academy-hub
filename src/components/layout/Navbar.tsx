@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Menu,
@@ -9,15 +9,67 @@ import {
   BookOpen,
   Trophy,
   User,
+  LogOut,
+  Settings,
+  ChevronDown,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn] = useState(false); // This would be replaced with actual auth state
+  const { user, signOut } = useAuth();
+  const [profileData, setProfileData] = useState<{ full_name?: string, avatar_url?: string } | null>(null);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  useEffect(() => {
+    // Fetch user profile data if user is logged in
+    const fetchProfile = async () => {
+      if (user) {
+        try {
+          const { data, error } = await useAuth().supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) throw error;
+          setProfileData(data);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error("Error signing out");
+    }
+  };
+
+  const displayName = profileData?.full_name || user?.email?.split('@')[0] || 'User';
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -61,18 +113,45 @@ const Navbar = () => {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Link to="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
-                <Link to="/profile">
-                  <Button className="bg-levelup-purple hover:bg-levelup-purple/90">
-                    <User className="h-5 w-5 mr-2" />
-                    Profile
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar>
+                      <AvatarImage src={profileData?.avatar_url || undefined} />
+                      <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
                   </Button>
-                </Link>
-              </>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{displayName}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      <Trophy className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/settings')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <Link to="/login">
@@ -139,22 +218,60 @@ const Navbar = () => {
               </div>
             </div>
             <div className="pt-4 pb-2 border-t border-gray-200">
-              {isLoggedIn ? (
+              {user ? (
                 <>
+                  {user && (
+                    <div className="flex items-center py-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={profileData?.avatar_url || undefined} />
+                        <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-700">{displayName}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+                  )}
                   <Link
                     to="/dashboard"
                     className="block py-2 text-levelup-gray hover:text-levelup-purple"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Dashboard
+                    <div className="flex items-center">
+                      <Trophy className="h-5 w-5 mr-2" />
+                      Dashboard
+                    </div>
                   </Link>
                   <Link
                     to="/profile"
                     className="block py-2 text-levelup-gray hover:text-levelup-purple"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Profile
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Profile
+                    </div>
                   </Link>
+                  <Link
+                    to="/settings"
+                    className="block py-2 text-levelup-gray hover:text-levelup-purple"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <div className="flex items-center">
+                      <Settings className="h-5 w-5 mr-2" />
+                      Settings
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex w-full items-center py-2 text-levelup-gray hover:text-levelup-purple"
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Sign out
+                  </button>
                 </>
               ) : (
                 <>
@@ -163,14 +280,20 @@ const Navbar = () => {
                     className="block py-2 text-levelup-gray hover:text-levelup-purple"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Login
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Login
+                    </div>
                   </Link>
                   <Link
                     to="/register"
                     className="block py-2 text-levelup-purple font-medium hover:text-levelup-purple/90"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Register
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Register
+                    </div>
                   </Link>
                 </>
               )}
