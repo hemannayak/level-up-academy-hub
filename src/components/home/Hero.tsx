@@ -12,7 +12,7 @@ const Hero = () => {
             <h1 className="heading-xl mb-6">
               Level Up Your Skills with <span className="text-levelup-purple">Gamified</span> Learning
             </h1>
-            <p className="text-lg md:text-xl text-levelup-gray mb-8 max-w-2xl mx-auto lg:mx-0">
+            <p className="text-lg md:text-xl text-white font-semibold mb-8 max-w-2xl mx-auto lg:mx-0">
               Earn XP, unlock achievements, and track your progress as you master new skills. 
               Join thousands of learners who have transformed their knowledge through our 
               interactive platform.
@@ -38,7 +38,7 @@ const Hero = () => {
                   </div>
                 ))}
               </div>
-              <p className="ml-4 text-sm text-levelup-gray">
+              <p className="ml-4 text-sm text-white font-medium">
                 <span className="font-bold">5,000+</span> students already learning
               </p>
             </div>
