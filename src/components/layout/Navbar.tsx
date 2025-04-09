@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
   LogOut,
   Settings,
   ChevronDown,
+  MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,7 +42,6 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    // Fetch user profile data if user is logged in
     const fetchProfile = async () => {
       if (user) {
         try {
@@ -92,7 +91,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-6">
             <Link
               to="/courses"
@@ -106,6 +104,13 @@ const Navbar = () => {
             >
               About
             </Link>
+            <Link
+              to="/contact"
+              className="text-levelup-gray hover:text-levelup-purple transition-colors duration-200 flex items-center gap-1"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Contact & Feedback
+            </Link>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-levelup-gray" />
               <input
@@ -116,7 +121,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Auth Buttons */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             {user ? (
               <DropdownMenu>
@@ -171,7 +175,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={toggleMenu}
@@ -188,7 +191,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white shadow-lg animate-accordion-down">
           <div className="pt-2 pb-4 space-y-1 px-4">
@@ -210,6 +212,16 @@ const Navbar = () => {
               <div className="flex items-center">
                 <BookOpen className="h-5 w-5 mr-2" />
                 About
+              </div>
+            </Link>
+            <Link
+              to="/contact"
+              className="block py-2 text-levelup-gray hover:text-levelup-purple"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="flex items-center">
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Contact & Feedback
               </div>
             </Link>
             <div className="pt-3 pb-2">
@@ -292,7 +304,7 @@ const Navbar = () => {
                   </Link>
                   <Link
                     to="/register"
-                    className="block py-2 text-levelup-purple font-medium hover:text-levelup-purple/90"
+                    className="block py-2 text-levelup-gray hover:text-levelup-purple font-medium hover:text-levelup-purple/90"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <div className="flex items-center">
