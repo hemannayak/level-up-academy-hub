@@ -47,7 +47,7 @@ const Hero = () => {
             <div className="bg-white rounded-lg shadow-xl p-6 md:p-8 relative z-10">
               <div className="mb-6 p-4 bg-levelup-light-purple rounded-lg">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-bold">Current Progress</h3>
+                  <h3 className="font-bold text-black">Current Progress</h3>
                   <span className="text-sm text-levelup-purple font-semibold">2/5 Complete</span>
                 </div>
                 <div className="h-3 bg-white rounded-full">
@@ -63,8 +63,8 @@ const Hero = () => {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="font-medium">Python Fundamentals</p>
-                    <p className="text-sm text-levelup-gray">Completed • 100 XP earned</p>
+                    <p className="font-medium text-black">Python Fundamentals</p>
+                    <p className="text-sm text-black font-medium">Completed • 100 XP earned</p>
                   </div>
                 </div>
                 
@@ -75,43 +75,43 @@ const Hero = () => {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="font-medium">Data Structures</p>
-                    <p className="text-sm text-levelup-gray">Completed • 120 XP earned</p>
+                    <p className="font-medium text-black">Data Structures</p>
+                    <p className="text-sm text-black font-medium">Completed • 120 XP earned</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center p-3 bg-levelup-light-purple/50 border border-levelup-purple/20 rounded-md">
                   <div className="bg-levelup-light-purple p-2 rounded-md">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="#8B5CF6"/>
+                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="#EA384C"/>
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="font-medium">Algorithms</p>
-                    <p className="text-sm text-levelup-gray">In progress • 40% complete</p>
+                    <p className="font-medium text-black">Algorithms</p>
+                    <p className="text-sm text-black font-medium">In progress • 40% complete</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center p-3 bg-gray-50 rounded-md opacity-50">
+                <div className="flex items-center p-3 bg-gray-50 rounded-md opacity-80">
                   <div className="bg-gray-200 p-2 rounded-md">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15.1 8H8.9V6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8Z" fill="#6B7280"/>
+                      <path d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15.1 8H8.9V6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8Z" fill="#333"/>
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="font-medium">Advanced JavaScript</p>
-                    <p className="text-sm text-levelup-gray">Locked • Complete previous courses</p>
+                    <p className="font-medium text-black">Advanced JavaScript</p>
+                    <p className="text-sm text-black font-medium">Locked • Complete previous courses</p>
                   </div>
                 </div>
               </div>
               
               <div className="mt-6 flex justify-between items-center p-4 bg-levelup-purple/10 rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-levelup-dark-blue">Current Level</p>
+                  <p className="text-sm font-medium text-black">Current Level</p>
                   <p className="text-xl font-bold text-levelup-purple">Level 7</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-levelup-dark-blue">Total XP</p>
+                  <p className="text-sm font-medium text-black">Total XP</p>
                   <p className="text-xl font-bold text-levelup-purple">580 XP</p>
                 </div>
               </div>
