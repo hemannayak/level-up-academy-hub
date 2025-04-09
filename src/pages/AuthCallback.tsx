@@ -1,12 +1,13 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -25,8 +26,24 @@ const AuthCallback = () => {
           });
           navigate("/dashboard");
         } else {
-          // No session found, redirect to login
-          navigate("/login");
+          // If there's no session but we have a hash in the URL, it might be a pending OAuth callback
+          // Let's wait a bit to see if the session gets established
+          if (location.hash) {
+            setTimeout(async () => {
+              const { data: { session: delayedSession } } = await supabase.auth.getSession();
+              if (delayedSession) {
+                toast.success("Successfully signed in!", {
+                  description: "Welcome to the platform!"
+                });
+                navigate("/dashboard");
+              } else {
+                navigate("/login");
+              }
+            }, 1000);
+          } else {
+            // No session and no hash, redirect to login
+            navigate("/login");
+          }
         }
       } catch (error: any) {
         console.error("Error in auth callback:", error);
@@ -38,7 +55,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, location]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">
