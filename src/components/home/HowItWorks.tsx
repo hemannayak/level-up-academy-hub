@@ -117,46 +117,46 @@ const HowItWorks = () => {
                   <div className="bg-white rounded-lg p-6 shadow-sm">
                     <div className="flex justify-between items-center mb-6">
                       <h4 className="font-bold text-lg text-levelup-purple">Your Progress</h4>
-                      <span className="text-levelup-purple font-semibold">Level 5</span>
+                      <span className="text-levelup-purple font-semibold">Level 1</span>
                     </div>
 
                     {/* XP Bar */}
                     <div className="mb-6">
                       <div className="flex justify-between text-sm mb-1">
                         <span className="text-levelup-gray">Current XP</span>
-                        <span className="font-medium text-levelup-purple">350/500</span>
+                        <span className="font-medium text-levelup-purple">0/100</span>
                       </div>
                       <div className="h-3 bg-gray-100 rounded-full">
                         <div 
                           className="bg-gradient-to-r from-levelup-purple to-levelup-purple/70 h-full rounded-full" 
-                          style={{ width: "70%" }}
+                          style={{ width: "0%" }}
                         ></div>
                       </div>
                       <div className="text-xs text-levelup-gray text-right mt-1">
-                        150 XP until Level 6
+                        100 XP until Level 2
                       </div>
                     </div>
 
                     {/* Recent Achievements */}
-                    <h5 className="font-medium mb-3 text-levelup-purple">Recent Achievements</h5>
+                    <h5 className="font-medium mb-3 text-levelup-purple">Ready to Earn</h5>
                     <div className="space-y-3">
-                      <div className="flex items-center p-2 bg-levelup-light-purple/30 rounded">
-                        <div className="bg-levelup-light-purple p-2 rounded-full">
-                          <Award className="h-4 w-4 text-levelup-purple" />
+                      <div className="flex items-center p-2 bg-levelup-light-purple/10 rounded border border-dashed border-levelup-light-purple">
+                        <div className="bg-levelup-light-purple/30 p-2 rounded-full">
+                          <Award className="h-4 w-4 text-levelup-purple/50" />
                         </div>
                         <div className="ml-3">
                           <p className="font-medium text-sm text-levelup-purple">First Assignment</p>
-                          <p className="text-xs text-levelup-gray">Completed your first coding challenge</p>
+                          <p className="text-xs text-levelup-gray">Complete your first coding challenge</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center p-2 bg-levelup-light-purple/30 rounded">
-                        <div className="bg-levelup-light-purple p-2 rounded-full">
-                          <Trophy className="h-4 w-4 text-levelup-purple" />
+                      <div className="flex items-center p-2 bg-levelup-light-purple/10 rounded border border-dashed border-levelup-light-purple">
+                        <div className="bg-levelup-light-purple/30 p-2 rounded-full">
+                          <Trophy className="h-4 w-4 text-levelup-purple/50" />
                         </div>
                         <div className="ml-3">
                           <p className="font-medium text-sm text-levelup-purple">Perfect Quiz</p>
-                          <p className="text-xs text-levelup-gray">Scored 100% on a quiz</p>
+                          <p className="text-xs text-levelup-gray">Score 100% on a quiz</p>
                         </div>
                       </div>
                     </div>
