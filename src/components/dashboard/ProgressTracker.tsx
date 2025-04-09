@@ -22,6 +22,7 @@ interface Props {
 const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Props) => {
   // Check if user is new (has 0 XP)
   const isNewUser = totalXP === 0;
+  const progressPercentage = nextLevelXP > 0 ? (currentXP / nextLevelXP) * 100 : 0;
   
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -62,7 +63,7 @@ const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Pr
           <span className="font-medium">Level Progress</span>
           <span>{currentXP}/{nextLevelXP} XP</span>
         </div>
-        <Progress value={(currentXP / nextLevelXP) * 100} className="h-3" />
+        <Progress value={progressPercentage} className="h-3" />
         <div className="text-xs text-right mt-1 text-levelup-gray">
           {nextLevelXP - currentXP} XP until Level {level + 1}
         </div>

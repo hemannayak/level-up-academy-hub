@@ -1,12 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProgressTracker from "@/components/dashboard/ProgressTracker";
 import BadgeDisplay from "@/components/dashboard/BadgeDisplay";
 import CourseCard from "@/components/ui/CourseCard";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
   BookOpen, 
   GraduationCap, 
@@ -19,7 +22,8 @@ import {
   Loader2 
 } from "lucide-react";
 
-const activeCourses = [];
+// Empty active courses array to start
+const initialActiveCourses = [];
 
 const badges = [
   {
@@ -119,13 +123,112 @@ const Dashboard = () => {
   const { user, supabase } = useAuth();
   const [profileData, setProfileData] = useState<{ full_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeCourses, setActiveCourses] = useState(initialActiveCourses);
 
+  // Initialize user stats with zero progress
   const [userStats, setUserStats] = useState({
     totalXP: 0,
     level: 1,
     nextLevelXP: 100,
     currentXP: 0
   });
+
+  // Function to complete a course and update progress
+  const completeCourse = async (courseId, xpReward) => {
+    try {
+      // Create a new completed course with 100% progress
+      const completedCourse = {
+        id: courseId,
+        title: recommendedCourses.find(c => c.id === courseId)?.title || "Course",
+        progress: 100,
+        lastActivity: new Date().toLocaleDateString()
+      };
+
+      // Update the active courses list
+      setActiveCourses(prev => [...prev, completedCourse]);
+
+      // Calculate new XP and level
+      const newTotalXP = userStats.totalXP + xpReward;
+      let newLevel = userStats.level;
+      let newCurrentXP = userStats.currentXP + xpReward;
+      let newNextLevelXP = userStats.nextLevelXP;
+
+      // Check if level up is needed
+      while (newCurrentXP >= newNextLevelXP) {
+        newCurrentXP -= newNextLevelXP;
+        newLevel++;
+        newNextLevelXP = 100 * newLevel; // Scale up XP requirements with levels
+      }
+
+      // Update user stats
+      setUserStats({
+        totalXP: newTotalXP,
+        level: newLevel,
+        nextLevelXP: newNextLevelXP,
+        currentXP: newCurrentXP
+      });
+
+      // Show success message
+      toast.success(`Course completed! Earned ${xpReward} XP`);
+      
+      // If this is a Supabase project, we would save the progress to the database here
+      if (user) {
+        // Here you would update the user's progress in the database
+        console.log("Saving progress to database for user", user.id);
+      }
+    } catch (error) {
+      console.error("Error completing course:", error);
+      toast.error("Failed to update progress");
+    }
+  };
+
+  // Simulate starting a course (40% progress)
+  const startCourse = async (courseId) => {
+    try {
+      // Find the course 
+      const course = recommendedCourses.find(c => c.id === courseId);
+      if (!course) return;
+
+      // Create a new course with 40% progress
+      const newCourse = {
+        id: courseId,
+        title: course.title,
+        progress: 40,
+        lastActivity: new Date().toLocaleDateString()
+      };
+
+      // Update the active courses list
+      setActiveCourses(prev => [...prev, newCourse]);
+
+      // Calculate XP earned (40% of total XP reward)
+      const xpEarned = Math.round(course.xpReward * 0.4);
+
+      // Update user stats
+      const newTotalXP = userStats.totalXP + xpEarned;
+      let newCurrentXP = userStats.currentXP + xpEarned;
+      let newLevel = userStats.level;
+      let newNextLevelXP = userStats.nextLevelXP;
+
+      // Check if level up is needed
+      while (newCurrentXP >= newNextLevelXP) {
+        newCurrentXP -= newNextLevelXP;
+        newLevel++;
+        newNextLevelXP = 100 * newLevel;
+      }
+
+      setUserStats({
+        totalXP: newTotalXP,
+        level: newLevel,
+        nextLevelXP: newNextLevelXP,
+        currentXP: newCurrentXP
+      });
+
+      toast.success(`Started course! Earned ${xpEarned} XP`);
+    } catch (error) {
+      console.error("Error starting course:", error);
+      toast.error("Failed to start course");
+    }
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -154,6 +257,46 @@ const Dashboard = () => {
   }, [user, supabase]);
 
   const displayName = profileData?.full_name || user?.email?.split('@')[0] || 'User';
+
+  // Enhanced CourseCard with progress tracking buttons
+  const EnhancedCourseCard = ({ course }) => {
+    // Check if course is already in progress
+    const isCourseActive = activeCourses.some(c => c.id === course.id);
+    const activeCourse = activeCourses.find(c => c.id === course.id);
+    
+    return (
+      <div className="relative">
+        <CourseCard course={course} />
+        <div className="mt-2 flex flex-col gap-2">
+          {isCourseActive ? (
+            <>
+              <div className="mt-1 mb-1">
+                <Progress value={activeCourse?.progress || 0} className="h-2" />
+                <div className="text-xs text-right mt-1 text-levelup-gray">
+                  {activeCourse?.progress || 0}% complete
+                </div>
+              </div>
+              {activeCourse?.progress < 100 && (
+                <Button 
+                  className="bg-levelup-purple hover:bg-levelup-purple/90 w-full"
+                  onClick={() => completeCourse(course.id, course.xpReward)}
+                >
+                  Complete Course
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button 
+              className="bg-levelup-purple hover:bg-levelup-purple/90 w-full"
+              onClick={() => startCourse(course.id)}
+            >
+              Start Course
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -268,7 +411,7 @@ const Dashboard = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {recommendedCourses.map(course => (
-                        <CourseCard key={course.id} course={course} />
+                        <EnhancedCourseCard key={course.id} course={course} />
                       ))}
                     </div>
                   </div>
@@ -295,21 +438,22 @@ const Dashboard = () => {
                       <div>
                         <h3 className="font-semibold mb-4">In Progress</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {activeCourses.map((course) => (
+                          {activeCourses.filter(course => course.progress < 100).map((course) => (
                             <div key={course.id} className="border rounded-lg p-4 hover:border-levelup-purple transition-colors">
                               <div className="flex justify-between items-center mb-2">
                                 <h4 className="font-medium">{course.title}</h4>
                                 <span className="text-sm text-levelup-gray">{course.progress}% complete</span>
                               </div>
-                              <div className="h-2 bg-gray-100 rounded-full mb-2">
-                                <div 
-                                  className="bg-levelup-purple h-full rounded-full" 
-                                  style={{ width: `${course.progress}%` }}
-                                ></div>
-                              </div>
+                              <Progress value={course.progress} className="h-2 mb-2" />
                               <div className="text-xs text-levelup-gray">
                                 Last activity: {course.lastActivity}
                               </div>
+                              <Button 
+                                className="bg-levelup-purple hover:bg-levelup-purple/90 w-full mt-3"
+                                onClick={() => completeCourse(course.id, recommendedCourses.find(c => c.id === course.id)?.xpReward || 100)}
+                              >
+                                Complete Course
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -317,9 +461,24 @@ const Dashboard = () => {
                       <div>
                         <h3 className="font-semibold mb-4">Completed</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="text-center p-6 text-levelup-gray">
-                            <p>You haven't completed any courses yet.</p>
-                          </div>
+                          {activeCourses.filter(course => course.progress === 100).length > 0 ? (
+                            activeCourses.filter(course => course.progress === 100).map((course) => (
+                              <div key={course.id} className="border border-green-200 bg-green-50 rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h4 className="font-medium">{course.title}</h4>
+                                  <span className="text-sm text-green-600 font-bold">Completed</span>
+                                </div>
+                                <Progress value={100} className="h-2 mb-2 bg-green-100" />
+                                <div className="text-xs text-levelup-gray">
+                                  Completed on: {course.lastActivity}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-center p-6 text-levelup-gray">
+                              <p>You haven't completed any courses yet.</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -353,7 +512,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Courses Enrolled</div>
-                      <div className="font-bold">0</div>
+                      <div className="font-bold">{activeCourses.length}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -362,7 +521,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Badges Earned</div>
-                      <div className="font-bold">0</div>
+                      <div className="font-bold">{badges.filter(badge => !badge.isLocked).length}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -371,7 +530,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Learning Streak</div>
-                      <div className="font-bold">0 days</div>
+                      <div className="font-bold">{activeCourses.length > 0 ? '1 day' : '0 days'}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -380,7 +539,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Hours Learned</div>
-                      <div className="font-bold">0 hours</div>
+                      <div className="font-bold">{userStats.totalXP > 0 ? Math.round(userStats.totalXP / 30) : 0} hours</div>
                     </div>
                   </div>
                 </div>
