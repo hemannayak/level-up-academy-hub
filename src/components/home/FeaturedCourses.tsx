@@ -66,7 +66,7 @@ const FeaturedCourses = () => {
       <div className="levelup-container">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
           <div>
-            <h2 className="heading-lg mb-2">Featured Courses</h2>
+            <h2 className="heading-lg mb-2 text-levelup-purple font-bold">Featured Courses</h2>
             <p className="text-levelup-gray max-w-2xl">
               Discover our most popular courses and start your learning journey today. 
               Each course comes with interactive lessons, quizzes, and projects.
