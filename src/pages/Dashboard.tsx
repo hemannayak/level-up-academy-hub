@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -18,8 +19,7 @@ import {
   Loader2 
 } from "lucide-react";
 
-// For new users, use empty courses array
-const activeCourses = []; // Start with no active courses
+const activeCourses = [];
 
 const badges = [
   {
@@ -120,7 +120,6 @@ const Dashboard = () => {
   const [profileData, setProfileData] = useState<{ full_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Default XP values for new users
   const [userStats, setUserStats] = useState({
     totalXP: 0,
     level: 1,
@@ -154,16 +153,14 @@ const Dashboard = () => {
     fetchProfileData();
   }, [user, supabase]);
 
-  // Get the display name: full_name from profile, or email username, or default
   const displayName = profileData?.full_name || user?.email?.split('@')[0] || 'User';
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <main className="flex-grow bg-gray-50">
         <div className="levelup-container py-8">
-          {/* Dashboard Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
               {loading ? (
@@ -196,7 +193,6 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Dashboard Navigation */}
           <div className="mb-8 border-b">
             <nav className="flex space-x-8">
               <button
@@ -254,9 +250,7 @@ const Dashboard = () => {
             </nav>
           </div>
           
-          {/* Dashboard Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-8">
               {activeTab === "overview" && (
                 <>
@@ -349,7 +343,6 @@ const Dashboard = () => {
               )}
             </div>
             
-            {/* Sidebar */}
             <div className="space-y-8">
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="font-bold mb-4">Your Stats</h3>
