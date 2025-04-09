@@ -78,12 +78,12 @@ const Footer = () => {
               <li className="flex items-start">
                 <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-levelup-purple" />
                 <span className="text-sm opacity-80">
-                  123 Education Street, Learning City, 10001
+                  Team17, 2nd year CSD-B, HITAM
                 </span>
               </li>
               <li className="flex items-center">
                 <Phone size={18} className="mr-2 flex-shrink-0 text-levelup-purple" />
-                <span className="text-sm opacity-80">+1 (555) 123-4567</span>
+                <span className="text-sm opacity-80">+91</span>
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-2 flex-shrink-0 text-levelup-purple" />
