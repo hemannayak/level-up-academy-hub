@@ -33,7 +33,7 @@ const HowItWorks = () => {
     <section className="py-16 bg-gray-50">
       <div className="levelup-container">
         <div className="text-center mb-16">
-          <h2 className="heading-lg mb-4">How LevelUp Learning Works</h2>
+          <h2 className="heading-lg mb-4 text-levelup-purple">How LevelUp Learning Works</h2>
           <p className="text-levelup-gray max-w-2xl mx-auto">
             Our platform combines structured learning with gamification elements
             to create an engaging and effective educational experience.
@@ -48,7 +48,7 @@ const HowItWorks = () => {
             >
               <div className="absolute -right-4 -top-4 w-24 h-24 bg-levelup-light-purple rounded-full opacity-0 group-hover:opacity-80 transition-opacity"></div>
               <div className="relative z-10">{step.icon}</div>
-              <h3 className="text-xl font-bold mt-4 mb-2">{step.title}</h3>
+              <h3 className="text-xl font-bold mt-4 mb-2 text-levelup-purple">{step.title}</h3>
               <p className="text-levelup-gray">{step.description}</p>
               <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-levelup-light-purple flex items-center justify-center">
                 <span className="font-bold text-levelup-purple">{index + 1}</span>
@@ -61,7 +61,7 @@ const HowItWorks = () => {
           <div className="bg-white rounded-xl shadow p-8 lg:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div className="order-2 lg:order-1">
-                <h3 className="heading-md mb-6">
+                <h3 className="heading-md mb-6 text-levelup-purple">
                   Gamified Learning Experience
                 </h3>
                 <div className="space-y-6">
@@ -70,7 +70,7 @@ const HowItWorks = () => {
                       <Trophy className="h-6 w-6 text-levelup-purple" />
                     </div>
                     <div className="ml-4">
-                      <h4 className="font-bold text-lg mb-1">XP System</h4>
+                      <h4 className="font-bold text-lg mb-1 text-levelup-purple">XP System</h4>
                       <p className="text-levelup-gray">
                         Earn experience points for completing lessons, quizzes,
                         and assignments. Watch your level grow as you master new
@@ -84,7 +84,7 @@ const HowItWorks = () => {
                       <Award className="h-6 w-6 text-levelup-purple" />
                     </div>
                     <div className="ml-4">
-                      <h4 className="font-bold text-lg mb-1">
+                      <h4 className="font-bold text-lg mb-1 text-levelup-purple">
                         Badges & Achievements
                       </h4>
                       <p className="text-levelup-gray">
@@ -99,7 +99,7 @@ const HowItWorks = () => {
                       <BarChart className="h-6 w-6 text-levelup-purple" />
                     </div>
                     <div className="ml-4">
-                      <h4 className="font-bold text-lg mb-1">
+                      <h4 className="font-bold text-lg mb-1 text-levelup-purple">
                         Learning Analytics
                       </h4>
                       <p className="text-levelup-gray">
@@ -116,15 +116,15 @@ const HowItWorks = () => {
                 <div className="bg-gradient-to-br from-levelup-light-purple to-white p-6 rounded-xl shadow-lg max-w-md">
                   <div className="bg-white rounded-lg p-6 shadow-sm">
                     <div className="flex justify-between items-center mb-6">
-                      <h4 className="font-bold text-lg">Your Progress</h4>
+                      <h4 className="font-bold text-lg text-levelup-purple">Your Progress</h4>
                       <span className="text-levelup-purple font-semibold">Level 5</span>
                     </div>
 
                     {/* XP Bar */}
                     <div className="mb-6">
                       <div className="flex justify-between text-sm mb-1">
-                        <span>Current XP</span>
-                        <span className="font-medium">350/500</span>
+                        <span className="text-levelup-gray">Current XP</span>
+                        <span className="font-medium text-levelup-purple">350/500</span>
                       </div>
                       <div className="h-3 bg-gray-100 rounded-full">
                         <div 
@@ -138,14 +138,14 @@ const HowItWorks = () => {
                     </div>
 
                     {/* Recent Achievements */}
-                    <h5 className="font-medium mb-3">Recent Achievements</h5>
+                    <h5 className="font-medium mb-3 text-levelup-purple">Recent Achievements</h5>
                     <div className="space-y-3">
                       <div className="flex items-center p-2 bg-levelup-light-purple/30 rounded">
                         <div className="bg-levelup-light-purple p-2 rounded-full">
                           <Award className="h-4 w-4 text-levelup-purple" />
                         </div>
                         <div className="ml-3">
-                          <p className="font-medium text-sm">First Assignment</p>
+                          <p className="font-medium text-sm text-levelup-purple">First Assignment</p>
                           <p className="text-xs text-levelup-gray">Completed your first coding challenge</p>
                         </div>
                       </div>
@@ -155,7 +155,7 @@ const HowItWorks = () => {
                           <Trophy className="h-4 w-4 text-levelup-purple" />
                         </div>
                         <div className="ml-3">
-                          <p className="font-medium text-sm">Perfect Quiz</p>
+                          <p className="font-medium text-sm text-levelup-purple">Perfect Quiz</p>
                           <p className="text-xs text-levelup-gray">Scored 100% on a quiz</p>
                         </div>
                       </div>
