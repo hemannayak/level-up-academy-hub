@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
@@ -19,27 +18,8 @@ import {
   Loader2 
 } from "lucide-react";
 
-// Mock data
-const activeCourses = [
-  {
-    id: 1,
-    title: "Python Programming: From Zero to Hero",
-    progress: 65,
-    lastActivity: "Today, 14:30"
-  },
-  {
-    id: 2,
-    title: "Data Science Fundamentals",
-    progress: 22,
-    lastActivity: "Yesterday"
-  },
-  {
-    id: 3,
-    title: "Web Development Bootcamp",
-    progress: 8,
-    lastActivity: "3 days ago"
-  }
-];
+// For new users, use empty courses array
+const activeCourses = []; // Start with no active courses
 
 const badges = [
   {
@@ -140,6 +120,14 @@ const Dashboard = () => {
   const [profileData, setProfileData] = useState<{ full_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Default XP values for new users
+  const [userStats, setUserStats] = useState({
+    totalXP: 0,
+    level: 1,
+    nextLevelXP: 100,
+    currentXP: 0
+  });
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -187,7 +175,9 @@ const Dashboard = () => {
                 <>
                   <h1 className="text-2xl font-bold mb-1">Welcome back, {displayName}!</h1>
                   <p className="text-levelup-gray">
-                    Track your progress and continue your learning journey.
+                    {userStats.totalXP === 0 
+                      ? "Start your learning journey today!" 
+                      : "Track your progress and continue your learning journey."}
                   </p>
                 </>
               )}
@@ -272,10 +262,10 @@ const Dashboard = () => {
                 <>
                   <ProgressTracker 
                     courses={activeCourses} 
-                    totalXP={580} 
-                    level={7} 
-                    nextLevelXP={750}
-                    currentXP={580} 
+                    totalXP={userStats.totalXP} 
+                    level={userStats.level} 
+                    nextLevelXP={userStats.nextLevelXP}
+                    currentXP={userStats.currentXP} 
                   />
                   
                   <div className="bg-white rounded-xl shadow-sm p-6">
@@ -294,47 +284,52 @@ const Dashboard = () => {
               {activeTab === "courses" && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-xl font-bold mb-6">My Learning</h2>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-4">In Progress</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {activeCourses.map((course) => (
-                          <div key={course.id} className="border rounded-lg p-4 hover:border-levelup-purple transition-colors">
-                            <div className="flex justify-between items-center mb-2">
-                              <h4 className="font-medium">{course.title}</h4>
-                              <span className="text-sm text-levelup-gray">{course.progress}% complete</span>
-                            </div>
-                            <div className="h-2 bg-gray-100 rounded-full mb-2">
-                              <div 
-                                className="bg-levelup-purple h-full rounded-full" 
-                                style={{ width: `${course.progress}%` }}
-                              ></div>
-                            </div>
-                            <div className="text-xs text-levelup-gray">
-                              Last activity: {course.lastActivity}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  
+                  {activeCourses.length === 0 ? (
+                    <div className="text-center py-12 text-levelup-gray">
+                      <BookOpen className="h-16 w-16 mx-auto mb-4 text-levelup-purple opacity-60" />
+                      <p className="text-lg mb-2">No courses in progress</p>
+                      <p className="mb-4">Start learning today to track your progress here!</p>
+                      <Link to="/courses">
+                        <Button className="bg-levelup-purple hover:bg-levelup-purple/90">
+                          Browse Courses
+                        </Button>
+                      </Link>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-4">Completed</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="border rounded-lg p-4 hover:border-levelup-purple transition-colors">
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-medium">HTML & CSS Foundations</h4>
-                            <span className="text-sm text-green-600">Completed</span>
-                          </div>
-                          <div className="h-2 bg-gray-100 rounded-full mb-2">
-                            <div className="bg-green-500 h-full rounded-full w-full"></div>
-                          </div>
-                          <div className="text-xs text-levelup-gray">
-                            Completed on April 2, 2023
+                  ) : (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-semibold mb-4">In Progress</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {activeCourses.map((course) => (
+                            <div key={course.id} className="border rounded-lg p-4 hover:border-levelup-purple transition-colors">
+                              <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-medium">{course.title}</h4>
+                                <span className="text-sm text-levelup-gray">{course.progress}% complete</span>
+                              </div>
+                              <div className="h-2 bg-gray-100 rounded-full mb-2">
+                                <div 
+                                  className="bg-levelup-purple h-full rounded-full" 
+                                  style={{ width: `${course.progress}%` }}
+                                ></div>
+                              </div>
+                              <div className="text-xs text-levelup-gray">
+                                Last activity: {course.lastActivity}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-4">Completed</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="text-center p-6 text-levelup-gray">
+                            <p>You haven't completed any courses yet.</p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
               
@@ -365,7 +360,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Courses Enrolled</div>
-                      <div className="font-bold">4</div>
+                      <div className="font-bold">0</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -374,7 +369,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Badges Earned</div>
-                      <div className="font-bold">3</div>
+                      <div className="font-bold">0</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -383,7 +378,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Learning Streak</div>
-                      <div className="font-bold">7 days</div>
+                      <div className="font-bold">0 days</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -392,7 +387,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Hours Learned</div>
-                      <div className="font-bold">26 hours</div>
+                      <div className="font-bold">0 hours</div>
                     </div>
                   </div>
                 </div>
@@ -400,19 +395,9 @@ const Dashboard = () => {
               
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="font-bold mb-4">Upcoming Deadlines</h3>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-levelup-purple pl-3">
-                    <div className="font-medium">Python Assignment #3</div>
-                    <div className="text-sm text-levelup-gray">Due tomorrow</div>
-                  </div>
-                  <div className="border-l-4 border-levelup-orange pl-3">
-                    <div className="font-medium">Data Science Quiz</div>
-                    <div className="text-sm text-levelup-gray">Due in 3 days</div>
-                  </div>
-                  <div className="border-l-4 border-gray-300 pl-3">
-                    <div className="font-medium">Web Development Project</div>
-                    <div className="text-sm text-levelup-gray">Due in 2 weeks</div>
-                  </div>
+                <div className="text-center py-6 text-levelup-gray">
+                  <p>No deadlines yet.</p>
+                  <p className="text-sm mt-1">Enroll in courses to see deadlines here.</p>
                 </div>
               </div>
               

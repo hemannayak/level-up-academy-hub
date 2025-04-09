@@ -20,6 +20,9 @@ interface Props {
 }
 
 const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Props) => {
+  // Check if user is new (has 0 XP)
+  const isNewUser = totalXP === 0;
+  
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
@@ -39,7 +42,7 @@ const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Pr
           <div className="text-sm text-levelup-gray mb-1">Current Level</div>
           <div className="text-2xl font-bold text-levelup-purple flex items-center">
             Level {level}
-            <TrendingUp className="ml-2 h-4 w-4" />
+            {!isNewUser && <TrendingUp className="ml-2 h-4 w-4" />}
           </div>
         </div>
         
@@ -82,9 +85,10 @@ const ProgressTracker = ({ courses, totalXP, level, nextLevelXP, currentXP }: Pr
         ))}
       </div>
 
-      {courses.length === 0 && (
+      {(courses.length === 0 || isNewUser) && (
         <div className="text-center py-8 text-levelup-gray">
-          You haven't started any courses yet.
+          <p className="mb-2">You haven't started any courses yet.</p>
+          <p className="mb-6 text-sm">Start your learning journey today to earn XP and track your progress!</p>
           <div className="mt-4">
             <Link to="/courses">
               <Button className="bg-levelup-purple hover:bg-levelup-purple/90">
