@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { LogIn, Github, Mail } from "lucide-react";
+import { LogIn, Github, Mail, AlertCircle } from "lucide-react";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginForm = () => {
   const { signIn } = useAuth();
@@ -25,12 +26,17 @@ const LoginForm = () => {
   const [isGithubLoading, setIsGithubLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
     // Clear error when field changes
     if (errors[e.target.id]) {
       setErrors({ ...errors, [e.target.id]: "" });
+    }
+    // Clear the email not confirmed error when email changes
+    if (e.target.id === "email" && emailNotConfirmed) {
+      setEmailNotConfirmed(false);
     }
   };
 
@@ -56,6 +62,7 @@ const LoginForm = () => {
     
     if (validate()) {
       setIsLoading(true);
+      setEmailNotConfirmed(false);
       
       try {
         const { error } = await signIn(
@@ -64,14 +71,24 @@ const LoginForm = () => {
         );
         
         if (error) {
-          uiToast({
-            title: "Login failed",
-            description: error.message,
-            variant: "destructive",
-          });
-          toast.error("Login failed", {
-            description: error.message,
-          });
+          // Check specifically for the email not confirmed error
+          if (error.message === "Email not confirmed" || error.code === "email_not_confirmed") {
+            setEmailNotConfirmed(true);
+            uiToast({
+              title: "Email verification required",
+              description: "Please check your inbox and verify your email before logging in.",
+              variant: "default",
+            });
+          } else {
+            uiToast({
+              title: "Login failed",
+              description: error.message,
+              variant: "destructive",
+            });
+            toast.error("Login failed", {
+              description: error.message,
+            });
+          }
           console.error("Login error:", error);
         } else {
           uiToast({
@@ -161,6 +178,15 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {emailNotConfirmed && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Your email address has not been verified yet. Please check your inbox and follow the verification link before logging in.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
