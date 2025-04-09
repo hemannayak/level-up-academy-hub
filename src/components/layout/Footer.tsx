@@ -55,7 +55,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/contact" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
-                  Contact
+                  Contact & Feedback
                 </Link>
               </li>
               <li>

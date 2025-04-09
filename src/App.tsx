@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Courses from "./pages/Courses";
+import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import ResetPassword from "./pages/ResetPassword";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Protected routes - require authentication */}
