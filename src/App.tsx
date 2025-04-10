@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import LeaderBoard from "./pages/LeaderBoard";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/leaderboard" element={<LeaderBoard />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Protected routes - require authentication */}
