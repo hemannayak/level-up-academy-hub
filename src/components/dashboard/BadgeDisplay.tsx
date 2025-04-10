@@ -1,5 +1,5 @@
 
-import { Award, Info, Lock } from "lucide-react";
+import { Award, Info, Lock, UserPlus, Trophy, BookOpen, GraduationCap, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
@@ -7,20 +7,73 @@ interface Badge {
   id: number;
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   dateEarned: string | null;
   isLocked: boolean;
   xpRequired: number;
 }
 
 interface Props {
-  badges: Badge[];
   userXP: number;
 }
 
-const BadgeDisplay = ({ badges, userXP }: Props) => {
-  const earnedBadges = badges.filter((badge) => !badge.isLocked);
-  const lockedBadges = badges.filter((badge) => badge.isLocked);
+const BadgeDisplay = ({ userXP = 0 }: Props) => {
+  // Get current date for the signup badge
+  const today = new Date();
+  const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+  
+  // Define all badges with their requirements
+  const allBadges: Badge[] = [
+    {
+      id: 1,
+      title: "Welcome",
+      description: "Successfully joined LevelUp Learning",
+      icon: <UserPlus className="h-6 w-6 text-white" />,
+      dateEarned: formattedDate, // Only this badge is earned initially
+      isLocked: false, // Only this badge is unlocked initially
+      xpRequired: 0
+    },
+    {
+      id: 2,
+      title: "Fast Learner",
+      description: "Completed first course module",
+      icon: <Zap className="h-6 w-6 text-white" />,
+      dateEarned: null,
+      isLocked: true,
+      xpRequired: 50
+    },
+    {
+      id: 3,
+      title: "Knowledge Seeker",
+      description: "Completed your first course",
+      icon: <BookOpen className="h-6 w-6 text-white" />,
+      dateEarned: null,
+      isLocked: true,
+      xpRequired: 100
+    },
+    {
+      id: 4,
+      title: "Dedicated Student",
+      description: "Reached the 250 XP milestone",
+      icon: <GraduationCap className="h-6 w-6 text-white" />,
+      dateEarned: null,
+      isLocked: true,
+      xpRequired: 250
+    },
+    {
+      id: 5,
+      title: "Learning Master",
+      description: "Reached the 500 XP milestone",
+      icon: <Trophy className="h-6 w-6 text-white" />,
+      dateEarned: null,
+      isLocked: true,
+      xpRequired: 500
+    }
+  ];
+  
+  // Filter badges based on locked status
+  const earnedBadges = allBadges.filter((badge) => !badge.isLocked);
+  const lockedBadges = allBadges.filter((badge) => badge.isLocked);
   
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -30,7 +83,7 @@ const BadgeDisplay = ({ badges, userXP }: Props) => {
           <h2 className="text-xl font-bold text-levelup-purple">Your Achievements</h2>
         </div>
         <div className="text-sm text-levelup-gray">
-          <span className="font-medium text-levelup-purple">{earnedBadges.length}</span> of {badges.length} earned
+          <span className="font-medium text-levelup-purple">{earnedBadges.length}</span> of {allBadges.length} earned
         </div>
       </div>
 
@@ -81,9 +134,9 @@ const BadgeItem = ({ badge, userXP }: { badge: Badge, userXP: number }) => {
           <div className={`p-4 rounded-lg text-center ${badge.isLocked ? 'bg-gray-100 opacity-60' : 'bg-levelup-light-purple/30'}`}>
             <div className={`w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center ${badge.isLocked ? 'bg-gray-200' : 'bg-levelup-light-purple'}`}>
               {badge.isLocked ? (
-                <span className="text-gray-400 text-2xl">🔒</span>
+                <Lock className="h-5 w-5 text-gray-400" />
               ) : (
-                <span className="text-2xl">{badge.icon}</span>
+                badge.icon
               )}
             </div>
             <h4 className={`text-sm font-medium ${badge.isLocked ? 'text-levelup-gray' : 'text-levelup-purple'}`}>

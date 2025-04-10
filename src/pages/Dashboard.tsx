@@ -472,7 +472,7 @@ const Dashboard = () => {
               )}
               
               {activeTab === "achievements" && (
-                <BadgeDisplay badges={badges} userXP={userStats.totalXP} />
+                <BadgeDisplay userXP={userStats.totalXP} />
               )}
               
               {activeTab === "calendar" && (
