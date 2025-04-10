@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bell, User, Book, Award } from "lucide-react";
 
 const Settings = () => {
   const { user } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [achievementAlerts, setAchievementAlerts] = useState(true);
+  const [courseReminders, setCourseReminders] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const handleSaveSettings = async () => {
@@ -55,6 +57,34 @@ const Settings = () => {
                     onCheckedChange={setEmailNotifications}
                   />
                 </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="achievement-notifications" className="text-base">Achievement Alerts</Label>
+                    <p className="text-sm text-gray-500">
+                      Get notified when you earn new badges and achievements
+                    </p>
+                  </div>
+                  <Switch
+                    id="achievement-notifications"
+                    checked={achievementAlerts}
+                    onCheckedChange={setAchievementAlerts}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="course-reminders" className="text-base">Course Reminders</Label>
+                    <p className="text-sm text-gray-500">
+                      Receive reminders to continue your learning journey
+                    </p>
+                  </div>
+                  <Switch
+                    id="course-reminders"
+                    checked={courseReminders}
+                    onCheckedChange={setCourseReminders}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -77,6 +107,67 @@ const Settings = () => {
                     id="dark-mode"
                     checked={darkMode}
                     onCheckedChange={setDarkMode}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle>Learning Preferences</CardTitle>
+                <CardDescription>
+                  Customize your learning experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-4">
+                    <Bell className="h-8 w-8 text-levelup-purple mt-1" />
+                    <div>
+                      <h3 className="font-medium">Daily Reminders</h3>
+                      <p className="text-sm text-gray-500">
+                        Get daily notifications to maintain your learning streak
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="daily-reminders"
+                    checked={true}
+                    onCheckedChange={() => toast.info("This feature will be available soon!")}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-4">
+                    <Book className="h-8 w-8 text-levelup-purple mt-1" />
+                    <div>
+                      <h3 className="font-medium">Course Recommendations</h3>
+                      <p className="text-sm text-gray-500">
+                        Receive personalized course suggestions based on your interests
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="course-recommendations"
+                    checked={true}
+                    onCheckedChange={() => toast.info("This feature will be available soon!")}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-4">
+                    <Award className="h-8 w-8 text-levelup-purple mt-1" />
+                    <div>
+                      <h3 className="font-medium">Achievement Tracking</h3>
+                      <p className="text-sm text-gray-500">
+                        Track and showcase your learning achievements
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="achievement-tracking"
+                    checked={true}
+                    onCheckedChange={() => toast.info("This feature will be available soon!")}
                   />
                 </div>
               </CardContent>

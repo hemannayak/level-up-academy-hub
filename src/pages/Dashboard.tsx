@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,63 +23,6 @@ import {
 } from "lucide-react";
 
 const initialActiveCourses = [];
-
-const badges = [
-  {
-    id: 1,
-    title: "Quick Starter",
-    description: "Complete your first course module",
-    icon: "🚀",
-    dateEarned: "2023-04-15",
-    isLocked: false,
-    xpRequired: 10
-  },
-  {
-    id: 2,
-    title: "Quiz Master",
-    description: "Score 100% on 5 quizzes",
-    icon: "🧠",
-    dateEarned: "2023-04-22",
-    isLocked: false,
-    xpRequired: 50
-  },
-  {
-    id: 3,
-    title: "Consistent Learner",
-    description: "Login for 7 consecutive days",
-    icon: "📅",
-    dateEarned: "2023-04-28",
-    isLocked: false,
-    xpRequired: 75
-  },
-  {
-    id: 4,
-    title: "Code Ninja",
-    description: "Complete 10 coding challenges",
-    icon: "⚔️",
-    dateEarned: null,
-    isLocked: true,
-    xpRequired: 150
-  },
-  {
-    id: 5,
-    title: "Social Butterfly",
-    description: "Participate in 3 forum discussions",
-    icon: "🦋",
-    dateEarned: null,
-    isLocked: true,
-    xpRequired: 200
-  },
-  {
-    id: 6,
-    title: "Helping Hand",
-    description: "Answer 5 questions from other students",
-    icon: "🤝",
-    dateEarned: null,
-    isLocked: true,
-    xpRequired: 300
-  }
-];
 
 const recommendedCourses = [
   {
@@ -129,6 +73,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeCourses, setActiveCourses] = useState(initialActiveCourses);
 
+  // Initialize with zero values for new users
   const [userStats, setUserStats] = useState({
     totalXP: 0,
     level: 1,
@@ -308,16 +253,24 @@ const Dashboard = () => {
               )}
             </div>
             <div className="flex space-x-2 mt-4 md:mt-0">
-              <Button variant="outline" size="icon">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => toast.info("Notifications center coming soon!")}
+              >
                 <Bell className="h-5 w-5" />
               </Button>
-              <Button variant="outline" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-              <Button className="flex items-center space-x-2 bg-levelup-purple hover:bg-levelup-purple/90">
-                <User className="h-5 w-5" />
-                <span>Profile</span>
-              </Button>
+              <Link to="/settings">
+                <Button variant="outline" size="icon">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/profile">
+                <Button className="flex items-center space-x-2 bg-levelup-purple hover:bg-levelup-purple/90">
+                  <User className="h-5 w-5" />
+                  <span>Profile</span>
+                </Button>
+              </Link>
             </div>
           </div>
           
@@ -506,7 +459,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Badges Earned</div>
-                      <div className="font-bold">{badges.filter(badge => !badge.isLocked).length}</div>
+                      <div className="font-bold">1</div>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -515,7 +468,7 @@ const Dashboard = () => {
                     </div>
                     <div className="ml-3">
                       <div className="text-levelup-gray text-sm">Learning Streak</div>
-                      <div className="font-bold">{activeCourses.length > 0 ? '1 day' : '0 days'}</div>
+                      <div className="font-bold">{userStats.totalXP > 0 ? '1 day' : '0 days'}</div>
                     </div>
                   </div>
                   <div className="flex items-center">
