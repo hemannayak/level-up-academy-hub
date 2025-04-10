@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, UserCircle, LogOut } from "lucide-react";
+import { Menu, X, UserCircle, LogOut, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -24,8 +24,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-levelup-purple">
-              LevelUp Learning
+            <Link to="/" className="flex items-center gap-2">
+              <GraduationCap className="h-8 w-8 text-levelup-purple" />
+              <span className="text-2xl font-bold text-levelup-purple">LevelUp Learning</span>
             </Link>
           </div>
 
