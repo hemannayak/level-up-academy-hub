@@ -20,45 +20,45 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <GraduationCap className="h-8 w-8 text-levelup-purple" />
-              <span className="text-2xl font-bold text-levelup-purple">LevelUp Learning</span>
+              <GraduationCap className="h-8 w-8 text-primary" />
+              <span className="text-2xl font-bold text-gradient">LevelUp Learning</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8 items-center">
-            <Link to="/" className="text-gray-700 hover:text-levelup-purple">
+            <Link to="/" className="text-foreground hover:text-primary transition-colors">
               Home
             </Link>
-            <Link to="/courses" className="text-gray-700 hover:text-levelup-purple">
+            <Link to="/courses" className="text-foreground hover:text-primary transition-colors">
               Courses
             </Link>
-            <Link to="/leaderboard" className="text-gray-700 hover:text-levelup-purple">
+            <Link to="/leaderboard" className="text-foreground hover:text-primary transition-colors">
               Leaderboard
             </Link>
-            <Link to="/contact" className="text-gray-700 hover:text-levelup-purple">
+            <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
               Contact
             </Link>
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link to="/dashboard" className="text-gray-700 hover:text-levelup-purple">
+                <Link to="/dashboard" className="text-foreground hover:text-primary transition-colors">
                   Dashboard
                 </Link>
                 <div className="relative group">
-                  <Button variant="ghost" className="p-2 rounded-full">
-                    <UserCircle className="h-6 w-6" />
+                  <Button variant="ghost" className="p-2 rounded-full bg-secondary/50 hover:bg-secondary">
+                    <UserCircle className="h-6 w-6 text-primary" />
                   </Button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block">
+                  <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block animate-fade-in border border-border">
                     <div className="py-2">
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
-                      <Link to="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</Link>
+                      <Link to="/profile" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary">Profile</Link>
+                      <Link to="/settings" className="block px-4 py-2 text-sm text-foreground hover:bg-secondary">Settings</Link>
                       <button
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-secondary flex items-center"
                         onClick={handleLogout}
                       >
                         <LogOut className="h-4 w-4 mr-2" />
@@ -74,7 +74,7 @@ const Navbar = () => {
                   <Button variant="outline">Login</Button>
                 </Link>
                 <Link to="/register">
-                  <Button>Register</Button>
+                  <Button variant="gradient">Register</Button>
                 </Link>
               </div>
             )}
@@ -83,7 +83,7 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
-              className="outline-none"
+              className="outline-none text-foreground hover:text-primary transition-colors"
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -98,32 +98,32 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 space-y-4">
-            <Link to="/" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+          <div className="md:hidden mt-4 pb-4 space-y-4 animate-fade-in">
+            <Link to="/" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
               Home
             </Link>
-            <Link to="/courses" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+            <Link to="/courses" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
               Courses
             </Link>
-            <Link to="/leaderboard" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+            <Link to="/leaderboard" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
               Leaderboard
             </Link>
-            <Link to="/contact" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+            <Link to="/contact" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
               Contact
             </Link>
             {user ? (
               <>
-                <Link to="/dashboard" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+                <Link to="/dashboard" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
                   Dashboard
                 </Link>
-                <Link to="/profile" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+                <Link to="/profile" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
                   Profile
                 </Link>
-                <Link to="/settings" className="block py-2 text-gray-700 hover:text-levelup-purple" onClick={toggleMenu}>
+                <Link to="/settings" className="block py-2 text-foreground hover:text-primary transition-colors" onClick={toggleMenu}>
                   Settings
                 </Link>
                 <button
-                  className="w-full text-left py-2 text-red-600 hover:text-red-700 flex items-center"
+                  className="w-full text-left py-2 text-destructive hover:text-destructive/80 flex items-center"
                   onClick={() => {
                     handleLogout();
                     toggleMenu();
@@ -139,7 +139,7 @@ const Navbar = () => {
                   <Button variant="outline" className="w-full">Login</Button>
                 </Link>
                 <Link to="/register" onClick={toggleMenu}>
-                  <Button className="w-full">Register</Button>
+                  <Button variant="gradient" className="w-full">Register</Button>
                 </Link>
               </div>
             )}

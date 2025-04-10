@@ -7,33 +7,37 @@ import {
   Linkedin, 
   Mail, 
   MapPin, 
-  Phone 
+  Phone,
+  GraduationCap
 } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-levelup-dark-blue text-white pt-12 pb-6">
+    <footer className="bg-primary/95 text-white pt-12 pb-6">
       <div className="levelup-container">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-lg font-bold mb-4">LevelUp Learning</h3>
-            <p className="text-sm opacity-80 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <GraduationCap className="h-6 w-6 text-white" />
+              <h3 className="text-lg font-bold">LevelUp Learning</h3>
+            </div>
+            <p className="text-sm opacity-90 mb-6">
               Empowering learners to achieve their goals through engaging, gamified education.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-levelup-purple transition-colors">
+              <a href="#" className="text-white hover:text-secondary transition-colors">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-white hover:text-levelup-purple transition-colors">
+              <a href="#" className="text-white hover:text-secondary transition-colors">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-white hover:text-levelup-purple transition-colors">
+              <a href="#" className="text-white hover:text-secondary transition-colors">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-white hover:text-levelup-purple transition-colors">
+              <a href="#" className="text-white hover:text-secondary transition-colors">
                 <Linkedin size={20} />
               </a>
             </div>
@@ -44,27 +48,27 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/courses" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
+                <Link to="/courses" className="text-sm opacity-90 hover:opacity-100 hover:text-secondary transition-colors">
                   Courses
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
+                <Link to="/about" className="text-sm opacity-90 hover:opacity-100 hover:text-secondary transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
+                <Link to="/contact" className="text-sm opacity-90 hover:opacity-100 hover:text-secondary transition-colors">
                   Contact & Feedback
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
+                <Link to="/faq" className="text-sm opacity-90 hover:opacity-100 hover:text-secondary transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-sm opacity-80 hover:opacity-100 hover:text-levelup-purple transition-colors">
+                <Link to="/privacy" className="text-sm opacity-90 hover:opacity-100 hover:text-secondary transition-colors">
                   Privacy Policy
                 </Link>
               </li>
@@ -76,18 +80,18 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Contact Info</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-levelup-purple" />
-                <span className="text-sm opacity-80">
+                <MapPin size={18} className="mr-2 mt-1 flex-shrink-0 text-secondary" />
+                <span className="text-sm opacity-90">
                   Team17, 2nd year CSD-B, HITAM
                 </span>
               </li>
               <li className="flex items-center">
-                <Phone size={18} className="mr-2 flex-shrink-0 text-levelup-purple" />
-                <span className="text-sm opacity-80">+91-XXXXXXXX</span>
+                <Phone size={18} className="mr-2 flex-shrink-0 text-secondary" />
+                <span className="text-sm opacity-90">+91-XXXXXXXX</span>
               </li>
               <li className="flex items-center">
-                <Mail size={18} className="mr-2 flex-shrink-0 text-levelup-purple" />
-                <span className="text-sm opacity-80">info@leveluplearning.com</span>
+                <Mail size={18} className="mr-2 flex-shrink-0 text-secondary" />
+                <span className="text-sm opacity-90">info@leveluplearning.com</span>
               </li>
             </ul>
           </div>
@@ -95,18 +99,18 @@ const Footer = () => {
           {/* Newsletter */}
           <div>
             <h3 className="text-lg font-bold mb-4">Subscribe</h3>
-            <p className="text-sm opacity-80 mb-4">
+            <p className="text-sm opacity-90 mb-4">
               Stay updated with our latest courses and offers.
             </p>
             <form className="flex flex-col space-y-2">
               <input
                 type="email"
                 placeholder="Your email address"
-                className="px-4 py-2 rounded-md text-levelup-dark-blue focus:outline-none focus:ring-2 focus:ring-levelup-purple"
+                className="px-4 py-2 rounded-md bg-white/20 backdrop-blur-sm border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
               <button
                 type="submit"
-                className="bg-levelup-purple hover:bg-levelup-purple/90 text-white px-4 py-2 rounded-md transition duration-300"
+                className="bg-white text-primary hover:bg-white/90 px-4 py-2 rounded-md transition duration-300 font-medium"
               >
                 Subscribe
               </button>
@@ -114,8 +118,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-6">
-          <p className="text-center text-sm opacity-70">
+        <div className="border-t border-white/20 mt-8 pt-6">
+          <p className="text-center text-sm opacity-80">
             &copy; {currentYear} LevelUp Learning. All rights reserved.
           </p>
         </div>
