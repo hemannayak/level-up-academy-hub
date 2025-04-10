@@ -67,13 +67,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				levelup: {
-					purple: '#E41212',
-					'light-purple': '#FFFFFF',
-					'dark-blue': '#000000',
-					green: '#E41212',
-					orange: '#E41212',
-					gray: '#333333',
-					'light-gray': '#121212',
+					purple: '#8B5CF6',
+					'light-purple': '#A78BFA',
+					'dark-blue': '#1E3A8A',
+					green: '#10B981',
+					orange: '#F59E0B',
+					gray: '#4B5563',
+					'light-gray': '#9CA3AF',
 				}
 			},
 			borderRadius: {

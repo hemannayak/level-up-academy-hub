@@ -13,20 +13,20 @@ const Hero = () => {
         <div className="text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-bold text-levelup-purple mb-6">
             {user ? (
-              <>Hey <span className="text-purple-600">{userName}</span>, start your learning journey!</>
+              <>Hey <span className="text-levelup-light-purple">{userName}</span>, start your learning journey!</>
             ) : (
               <>Level Up Your Skills<br />Achieve Your Goals</>
             )}
           </h1>
           
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-700 mb-8">
             Interactive courses designed to help you master new skills at your own pace.
           </p>
           
           {user ? (
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="font-medium text-lg mb-2">Your Journey Begins</h3>
+                <h3 className="font-medium text-lg text-gray-800 mb-2">Your Journey Begins</h3>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                   <div className="bg-purple-600 h-2.5 rounded-full w-0"></div>
                 </div>
@@ -38,12 +38,12 @@ const Hero = () => {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/courses" className="flex-1">
-                  <Button variant="default" className="w-full">
+                  <Button variant="default" className="w-full text-white">
                     Start Learning
                   </Button>
                 </Link>
                 <Link to="/dashboard" className="flex-1">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full text-levelup-purple">
                     View Dashboard
                   </Button>
                 </Link>
@@ -52,12 +52,12 @@ const Hero = () => {
           ) : (
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/register">
-                <Button className="px-8 py-6 text-lg">
+                <Button className="px-8 py-6 text-lg text-white">
                   Get Started For Free
                 </Button>
               </Link>
               <Link to="/courses">
-                <Button variant="outline" className="px-8 py-6 text-lg">
+                <Button variant="outline" className="px-8 py-6 text-lg text-levelup-purple">
                   Browse Courses
                 </Button>
               </Link>
@@ -68,9 +68,9 @@ const Hero = () => {
         <div className="hidden md:block relative">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl transform rotate-3"></div>
           <img 
-            src="/placeholder.svg" 
-            alt="Students learning online" 
-            className="relative z-10 rounded-2xl shadow-lg"
+            src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=600&auto=format&fit=crop"
+            alt="Student learning online" 
+            className="relative z-10 rounded-2xl shadow-lg w-full h-auto object-cover"
           />
         </div>
       </div>
