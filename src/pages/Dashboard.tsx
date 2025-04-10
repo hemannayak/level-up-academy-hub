@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +21,6 @@ import {
   Loader2 
 } from "lucide-react";
 
-// Empty active courses array to start
 const initialActiveCourses = [];
 
 const badges = [
@@ -32,7 +30,8 @@ const badges = [
     description: "Complete your first course module",
     icon: "🚀",
     dateEarned: "2023-04-15",
-    isLocked: false
+    isLocked: false,
+    xpRequired: 10
   },
   {
     id: 2,
@@ -40,7 +39,8 @@ const badges = [
     description: "Score 100% on 5 quizzes",
     icon: "🧠",
     dateEarned: "2023-04-22",
-    isLocked: false
+    isLocked: false,
+    xpRequired: 50
   },
   {
     id: 3,
@@ -48,7 +48,8 @@ const badges = [
     description: "Login for 7 consecutive days",
     icon: "📅",
     dateEarned: "2023-04-28",
-    isLocked: false
+    isLocked: false,
+    xpRequired: 75
   },
   {
     id: 4,
@@ -56,7 +57,8 @@ const badges = [
     description: "Complete 10 coding challenges",
     icon: "⚔️",
     dateEarned: null,
-    isLocked: true
+    isLocked: true,
+    xpRequired: 150
   },
   {
     id: 5,
@@ -64,7 +66,8 @@ const badges = [
     description: "Participate in 3 forum discussions",
     icon: "🦋",
     dateEarned: null,
-    isLocked: true
+    isLocked: true,
+    xpRequired: 200
   },
   {
     id: 6,
@@ -72,7 +75,8 @@ const badges = [
     description: "Answer 5 questions from other students",
     icon: "🤝",
     dateEarned: null,
-    isLocked: true
+    isLocked: true,
+    xpRequired: 300
   }
 ];
 
@@ -125,7 +129,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeCourses, setActiveCourses] = useState(initialActiveCourses);
 
-  // Initialize user stats with zero progress
   const [userStats, setUserStats] = useState({
     totalXP: 0,
     level: 1,
@@ -133,10 +136,8 @@ const Dashboard = () => {
     currentXP: 0
   });
 
-  // Function to complete a course and update progress
   const completeCourse = async (courseId, xpReward) => {
     try {
-      // Create a new completed course with 100% progress
       const completedCourse = {
         id: courseId,
         title: recommendedCourses.find(c => c.id === courseId)?.title || "Course",
@@ -144,23 +145,19 @@ const Dashboard = () => {
         lastActivity: new Date().toLocaleDateString()
       };
 
-      // Update the active courses list
       setActiveCourses(prev => [...prev, completedCourse]);
 
-      // Calculate new XP and level
       const newTotalXP = userStats.totalXP + xpReward;
       let newLevel = userStats.level;
       let newCurrentXP = userStats.currentXP + xpReward;
       let newNextLevelXP = userStats.nextLevelXP;
 
-      // Check if level up is needed
       while (newCurrentXP >= newNextLevelXP) {
         newCurrentXP -= newNextLevelXP;
         newLevel++;
-        newNextLevelXP = 100 * newLevel; // Scale up XP requirements with levels
+        newNextLevelXP = 100 * newLevel;
       }
 
-      // Update user stats
       setUserStats({
         totalXP: newTotalXP,
         level: newLevel,
@@ -168,12 +165,9 @@ const Dashboard = () => {
         currentXP: newCurrentXP
       });
 
-      // Show success message
       toast.success(`Course completed! Earned ${xpReward} XP`);
       
-      // If this is a Supabase project, we would save the progress to the database here
       if (user) {
-        // Here you would update the user's progress in the database
         console.log("Saving progress to database for user", user.id);
       }
     } catch (error) {
@@ -182,14 +176,11 @@ const Dashboard = () => {
     }
   };
 
-  // Simulate starting a course (40% progress)
   const startCourse = async (courseId) => {
     try {
-      // Find the course 
       const course = recommendedCourses.find(c => c.id === courseId);
       if (!course) return;
 
-      // Create a new course with 40% progress
       const newCourse = {
         id: courseId,
         title: course.title,
@@ -197,19 +188,15 @@ const Dashboard = () => {
         lastActivity: new Date().toLocaleDateString()
       };
 
-      // Update the active courses list
       setActiveCourses(prev => [...prev, newCourse]);
 
-      // Calculate XP earned (40% of total XP reward)
       const xpEarned = Math.round(course.xpReward * 0.4);
 
-      // Update user stats
       const newTotalXP = userStats.totalXP + xpEarned;
       let newCurrentXP = userStats.currentXP + xpEarned;
       let newLevel = userStats.level;
       let newNextLevelXP = userStats.nextLevelXP;
 
-      // Check if level up is needed
       while (newCurrentXP >= newNextLevelXP) {
         newCurrentXP -= newNextLevelXP;
         newLevel++;
@@ -258,9 +245,7 @@ const Dashboard = () => {
 
   const displayName = profileData?.full_name || user?.email?.split('@')[0] || 'User';
 
-  // Enhanced CourseCard with progress tracking buttons
   const EnhancedCourseCard = ({ course }) => {
-    // Check if course is already in progress
     const isCourseActive = activeCourses.some(c => c.id === course.id);
     const activeCourse = activeCourses.find(c => c.id === course.id);
     
@@ -487,7 +472,7 @@ const Dashboard = () => {
               )}
               
               {activeTab === "achievements" && (
-                <BadgeDisplay badges={badges} />
+                <BadgeDisplay badges={badges} userXP={userStats.totalXP} />
               )}
               
               {activeTab === "calendar" && (

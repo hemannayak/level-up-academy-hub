@@ -1,73 +1,55 @@
-# Welcome to your Lovable project
 
-## Project info
+# LevelUp Learning Platform
 
-**URL**: https://lovable.dev/projects/b0453fcc-ad22-4c50-93b6-9f97dbede207
+A gamified education platform that leverages points, achievements, and leaderboards to motivate learning.
 
-## How can I edit this code?
+## Key Features
 
-There are several ways of editing your application.
+### Learning Experience
+- Interactive courses with step-by-step progression
+- Video lectures, quizzes, and practice exercises
+- Earn XP for completing learning activities
+- Course library covering various topics and skill levels
 
-**Use Lovable**
+### Gamification System
+- **XP and Level System**: Gain experience points for completed activities to level up
+- **Achievement Badges**: Unlock badges based on learning milestones
+- **Leaderboards**: Compare progress with other learners
+- **Progress Tracking**: Visualize your learning journey with detailed analytics
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b0453fcc-ad22-4c50-93b6-9f97dbede207) and start prompting.
+### How Gamification Works
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Starting Point**: All users begin at Level 1 with 0 XP
+2. **Earning XP**: Complete courses, quizzes, and activities to earn XP
+3. **Level Progression**: Accumulate XP to level up, with increasing XP requirements per level
+4. **Achievements**: Complete specific milestones to unlock badges and recognition
+5. **Leaderboard Rankings**: Compete with other learners based on XP earned
 
-**Use your preferred IDE**
+## Progression System
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The platform uses a comprehensive progression system to encourage consistent learning:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### XP & Leveling
+- Completing course modules: 10-50 XP
+- Passing quizzes: 5-25 XP per quiz
+- Finishing entire courses: 100-500 XP depending on difficulty
+- Daily login streaks: Bonus XP for consistent learning
 
-Follow these steps:
+### Achievement Badges
+Badges are locked initially and unlock as you make progress:
+- **First Steps**: Start your learning journey (10 XP)
+- **Knowledge Seeker**: Complete your first course (50 XP)
+- **Dedicated Learner**: Reach 100 XP total
+- **Expert Status**: Complete multiple courses (250 XP)
+- **Master Scholar**: Reach 500 XP milestone
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Create an account
+2. Browse available courses
+3. Enroll in your first course
+4. Start earning XP and unlocking achievements
+5. Track your progress on the dashboard
+6. Check the leaderboard to see how you compare
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b0453fcc-ad22-4c50-93b6-9f97dbede207) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Happy learning!

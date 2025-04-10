@@ -1,6 +1,7 @@
 
-import { Award, Info } from "lucide-react";
+import { Award, Info, Lock } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 
 interface Badge {
   id: number;
@@ -9,13 +10,15 @@ interface Badge {
   icon: string;
   dateEarned: string | null;
   isLocked: boolean;
+  xpRequired: number;
 }
 
 interface Props {
   badges: Badge[];
+  userXP: number;
 }
 
-const BadgeDisplay = ({ badges }: Props) => {
+const BadgeDisplay = ({ badges, userXP }: Props) => {
   const earnedBadges = badges.filter((badge) => !badge.isLocked);
   const lockedBadges = badges.filter((badge) => badge.isLocked);
   
@@ -24,19 +27,27 @@ const BadgeDisplay = ({ badges }: Props) => {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
           <Award className="h-5 w-5 text-levelup-purple mr-2" />
-          <h2 className="text-xl font-bold">Your Achievements</h2>
+          <h2 className="text-xl font-bold text-levelup-purple">Your Achievements</h2>
         </div>
         <div className="text-sm text-levelup-gray">
           <span className="font-medium text-levelup-purple">{earnedBadges.length}</span> of {badges.length} earned
         </div>
       </div>
 
+      <div className="mb-4">
+        <div className="flex justify-between text-sm mb-1">
+          <span className="font-medium text-levelup-purple">Your XP</span>
+          <span className="text-levelup-gray">{userXP} XP</span>
+        </div>
+        <Progress value={(userXP / 500) * 100} className="h-2" />
+      </div>
+
       <div className="mb-6">
-        <h3 className="font-bold mb-4">Earned Badges</h3>
+        <h3 className="font-bold mb-4 text-levelup-purple">Earned Badges</h3>
         {earnedBadges.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {earnedBadges.map((badge) => (
-              <BadgeItem key={badge.id} badge={badge} />
+              <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
             ))}
           </div>
         ) : (
@@ -48,10 +59,10 @@ const BadgeDisplay = ({ badges }: Props) => {
 
       {lockedBadges.length > 0 && (
         <div>
-          <h3 className="font-bold mb-4">Badges to Unlock</h3>
+          <h3 className="font-bold mb-4 text-levelup-purple">Badges to Unlock</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {lockedBadges.map((badge) => (
-              <BadgeItem key={badge.id} badge={badge} />
+              <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
             ))}
           </div>
         </div>
@@ -60,7 +71,9 @@ const BadgeDisplay = ({ badges }: Props) => {
   );
 };
 
-const BadgeItem = ({ badge }: { badge: Badge }) => {
+const BadgeItem = ({ badge, userXP }: { badge: Badge, userXP: number }) => {
+  const progress = badge.isLocked ? Math.min((userXP / badge.xpRequired) * 100, 100) : 100;
+  
   return (
     <TooltipProvider>
       <Tooltip>
@@ -81,6 +94,12 @@ const BadgeItem = ({ badge }: { badge: Badge }) => {
                 Earned on {badge.dateEarned}
               </p>
             )}
+            {badge.isLocked && (
+              <div className="mt-2">
+                <div className="text-xs text-levelup-gray mb-1">{userXP}/{badge.xpRequired} XP</div>
+                <Progress value={progress} className="h-1" />
+              </div>
+            )}
           </div>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
@@ -88,7 +107,7 @@ const BadgeItem = ({ badge }: { badge: Badge }) => {
           <p className="text-sm text-levelup-gray">{badge.description}</p>
           {badge.isLocked && (
             <div className="mt-2 text-xs flex items-center text-amber-600">
-              <Info className="h-3 w-3 mr-1" /> Complete requirements to unlock
+              <Info className="h-3 w-3 mr-1" /> Need {badge.xpRequired} XP to unlock
             </div>
           )}
         </TooltipContent>
