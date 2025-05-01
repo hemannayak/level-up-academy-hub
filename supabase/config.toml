@@ -1,1 +1,23 @@
+
 project_id = "dnyttbkbmvjwvauhzjtc"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[storage]
+port = 5432
+
+[functions]
+[functions.send-confirmation]
+verify_jwt = false
+
+[functions.update-learning-time]
+verify_jwt = true

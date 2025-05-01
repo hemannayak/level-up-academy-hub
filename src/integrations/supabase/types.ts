@@ -9,6 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contact_emails: {
+        Row: {
+          email_body: string
+          email_subject: string
+          email_to: string
+          id: string
+          sent_at: string | null
+          status: string | null
+          submission_id: string | null
+        }
+        Insert: {
+          email_body: string
+          email_subject: string
+          email_to: string
+          id?: string
+          sent_at?: string | null
+          status?: string | null
+          submission_id?: string | null
+        }
+        Update: {
+          email_body?: string
+          email_subject?: string
+          email_to?: string
+          id?: string
+          sent_at?: string | null
+          status?: string | null
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_emails_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "contact_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_submissions: {
+        Row: {
+          category: string
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      learning_time: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_active: string | null
+          last_streak_update: string | null
+          streak_days: number | null
+          total_minutes: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_active?: string | null
+          last_streak_update?: string | null
+          streak_days?: number | null
+          total_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_active?: string | null
+          last_streak_update?: string | null
+          streak_days?: number | null
+          total_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

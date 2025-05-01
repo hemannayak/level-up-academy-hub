@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { MapPin, Mail, Phone, MessageSquare } from "lucide-react";
+import { MapPin, Mail, Phone, MessageSquare, Loader2, CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,8 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -47,6 +49,8 @@ export default function Contact() {
   const { toast: shadowToast } = useToast();
   const [submissionStep, setSubmissionStep] = useState(0);
   const [feedbackTips, setFeedbackTips] = useState("");
+  const { user } = useAuth();
+  const [submission, setSubmission] = useState<any>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,6 +62,13 @@ export default function Contact() {
       category: "general",
     },
   });
+  
+  // Auto-fill user's email if authenticated
+  useEffect(() => {
+    if (user?.email) {
+      form.setValue("email", user.email);
+    }
+  }, [user]);
   
   const watchCategory = form.watch("category");
   const watchMessage = form.watch("message");
@@ -95,19 +106,31 @@ export default function Contact() {
   };
   
   // Update feedback tips whenever category or message changes
-  useState(() => {
+  useEffect(() => {
     if (watchMessage && watchCategory) {
       updateFeedbackTips(watchMessage, watchCategory);
     }
-  });
+  }, [watchMessage, watchCategory]);
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Simulate submission steps
-    setSubmissionStep(1);
-    
-    // In a real app, you would send this data to your backend
-    setTimeout(() => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setSubmissionStep(1);
+      
+      // Save to Supabase via the edge function to send confirmation email
+      const { data, error } = await supabase.functions.invoke("send-confirmation", {
+        body: {
+          ...values,
+          userId: user?.id || null
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setSubmission(data);
       setSubmissionStep(2);
+      
       toast.success("Feedback submitted successfully!", {
         description: "We'll respond to your message shortly.",
         duration: 5000,
@@ -119,8 +142,17 @@ export default function Contact() {
       });
       
       form.reset();
+      
+      // Move back to step 0 after a delay
+      setTimeout(() => {
+        setSubmissionStep(0);
+        setSubmission(null);
+      }, 5000);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast.error("Failed to submit feedback. Please try again.");
       setSubmissionStep(0);
-    }, 1500);
+    }
   };
 
   return (
@@ -174,12 +206,22 @@ export default function Contact() {
             <div>
               <h2 className="text-2xl font-semibold mb-6 text-levelup-dark-blue">Send Us Your Feedback</h2>
               
-              {feedbackTips && (
+              {feedbackTips && !submission && (
                 <Alert className="mb-6 bg-blue-50 border-blue-200">
                   <MessageSquare className="h-4 w-4 text-blue-500" />
                   <AlertTitle className="text-blue-700">Real-time Guidance</AlertTitle>
                   <AlertDescription className="text-blue-600">
                     {feedbackTips}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {submission && (
+                <Alert className="mb-6 bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <AlertTitle className="text-green-700">Message Sent Successfully!</AlertTitle>
+                  <AlertDescription className="text-green-600">
+                    Thank you for your feedback. We've sent a confirmation to your email.
                   </AlertDescription>
                 </Alert>
               )}
@@ -288,7 +330,19 @@ export default function Contact() {
                     className="bg-levelup-purple hover:bg-levelup-purple/90" 
                     disabled={submissionStep > 0}
                   >
-                    {submissionStep === 1 ? "Submitting..." : "Submit Feedback"}
+                    {submissionStep === 1 ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : submissionStep === 2 ? (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Submitted!
+                      </>
+                    ) : (
+                      "Submit Feedback"
+                    )}
                   </Button>
                 </form>
               </Form>

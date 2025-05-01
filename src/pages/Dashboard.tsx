@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProgressTracker from "@/components/dashboard/ProgressTracker";
 import BadgeDisplay from "@/components/dashboard/BadgeDisplay";
+import LearningTimeTracker from "@/components/dashboard/LearningTimeTracker";
 import CourseCard from "@/components/ui/CourseCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -72,6 +73,7 @@ const Dashboard = () => {
   const [profileData, setProfileData] = useState<{ full_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeCourses, setActiveCourses] = useState(initialActiveCourses);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // Initialize with zero values for new users
   const [userStats, setUserStats] = useState({
@@ -177,6 +179,33 @@ const Dashboard = () => {
           console.error("Error fetching profile data:", error);
         } else {
           setProfileData(data);
+          
+          // Show welcome popup for first-time users
+          const hasSeenWelcome = localStorage.getItem(`welcome_seen_${user.id}`);
+          if (!hasSeenWelcome) {
+            setShowWelcome(true);
+            localStorage.setItem(`welcome_seen_${user.id}`, 'true');
+            
+            // Show welcome badge toast
+            setTimeout(() => {
+              toast(
+                <div className="flex items-center gap-3">
+                  <div className="bg-levelup-purple rounded-full p-2">
+                    <User className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-levelup-purple">Welcome Badge Earned!</p>
+                    <p>Successfully joined LevelUp Learning</p>
+                  </div>
+                </div>,
+                {
+                  duration: 5000,
+                  className: "badge-toast",
+                  position: "top-center"
+                }
+              );
+            }, 1500);
+          }
         }
       } catch (error) {
         console.error("Error in profile fetch:", error);
@@ -441,6 +470,8 @@ const Dashboard = () => {
             </div>
             
             <div className="space-y-8">
+              <LearningTimeTracker />
+              
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="font-bold mb-4">Your Stats</h3>
                 <div className="space-y-4">
