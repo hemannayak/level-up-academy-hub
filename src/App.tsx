@@ -27,7 +27,7 @@ const App = () => (
       <BrowserRouter>
         <TooltipProvider>
           <Toaster />
-          <Sonner />
+          <Sonner position="top-center" closeButton />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />

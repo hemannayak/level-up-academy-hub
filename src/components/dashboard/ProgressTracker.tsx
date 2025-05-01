@@ -3,6 +3,7 @@ import { BarChart2, ChevronRight, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 interface Course {
   id: number;

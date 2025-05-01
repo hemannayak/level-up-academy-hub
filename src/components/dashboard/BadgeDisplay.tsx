@@ -1,7 +1,9 @@
 
+import { useEffect, useState } from "react";
 import { Award, Info, Lock, UserPlus, Trophy, BookOpen, GraduationCap, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 
 interface Badge {
   id: number;
@@ -18,6 +20,9 @@ interface Props {
 }
 
 const BadgeDisplay = ({ userXP = 0 }: Props) => {
+  // Track which badges have been celebrated already
+  const [celebratedBadges, setCelebratedBadges] = useState<number[]>([]);
+  
   // Get current date for the signup badge
   const today = new Date();
   const formattedDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
@@ -70,10 +75,49 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       xpRequired: 500
     }
   ];
+
+  // Check if user has unlocked any new badges based on XP
+  useEffect(() => {
+    // Find badges that should be unlocked based on XP but haven't been celebrated yet
+    allBadges.forEach(badge => {
+      if (!badge.isLocked) return; // Skip already unlocked badges
+      
+      if (userXP >= badge.xpRequired && !celebratedBadges.includes(badge.id)) {
+        // Show celebration toast
+        toast(
+          <div className="flex items-center gap-3">
+            <div className="bg-levelup-purple rounded-full p-2">
+              {badge.icon}
+            </div>
+            <div>
+              <p className="font-bold text-levelup-purple">Badge Earned!</p>
+              <p>{badge.title}</p>
+            </div>
+          </div>,
+          {
+            duration: 5000,
+            className: "badge-toast",
+            position: "top-center"
+          }
+        );
+        
+        // Add to celebrated badges
+        setCelebratedBadges(prev => [...prev, badge.id]);
+      }
+    });
+  }, [userXP, celebratedBadges]);
   
-  // Filter badges based on locked status
-  const earnedBadges = allBadges.filter((badge) => !badge.isLocked);
-  const lockedBadges = allBadges.filter((badge) => badge.isLocked);
+  // Filter badges based on locked status and user's XP
+  const earnedBadges = allBadges
+    .filter((badge) => !badge.isLocked || userXP >= badge.xpRequired)
+    .map(badge => ({
+      ...badge,
+      isLocked: false,
+      dateEarned: badge.dateEarned || formattedDate
+    }));
+    
+  const lockedBadges = allBadges
+    .filter((badge) => badge.isLocked && userXP < badge.xpRequired);
   
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">

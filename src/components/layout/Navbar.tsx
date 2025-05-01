@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, UserCircle, LogOut, GraduationCap } from "lucide-react";
+import { Menu, X, UserCircle, LogOut, GraduationCap, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const {
@@ -10,13 +12,51 @@ const Navbar = () => {
     signOut
   } = useAuth();
   const navigate = useNavigate();
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
+  
+  // Show welcome message and badge notification on first login
+  useEffect(() => {
+    if (user && !localStorage.getItem('welcomed')) {
+      setIsFirstLogin(true);
+      localStorage.setItem('welcomed', 'true');
+      
+      // Slight delay to ensure it shows after page load
+      setTimeout(() => {
+        toast(
+          <div className="flex items-center gap-3">
+            <div className="bg-levelup-purple rounded-full p-2">
+              <UserCircle className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-levelup-purple">Welcome Badge Earned!</p>
+              <p>Successfully joined LevelUp Learning</p>
+            </div>
+          </div>,
+          {
+            duration: 5000,
+            className: "badge-toast",
+            position: "top-center"
+          }
+        );
+      }, 1000);
+    }
+  }, [user]);
+  
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
+  
+  const showNotification = () => {
+    toast.info("You have no new notifications", {
+      description: "Check back later for updates on your learning progress"
+    });
+  };
+  
   return <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
@@ -45,6 +85,15 @@ const Navbar = () => {
                 <Link to="/dashboard" className="text-foreground hover:text-primary transition-colors">
                   Dashboard
                 </Link>
+                <div className="relative group">
+                  <Button 
+                    variant="ghost" 
+                    onClick={showNotification} 
+                    className="p-2 rounded-full bg-secondary/50 hover:bg-secondary"
+                  >
+                    <Bell className="h-6 w-6 text-primary" />
+                  </Button>
+                </div>
                 <div className="relative group">
                   <Button variant="ghost" className="p-2 rounded-full bg-secondary/50 hover:bg-secondary">
                     <UserCircle className="h-6 w-6 text-primary" />
@@ -121,4 +170,5 @@ const Navbar = () => {
       </div>
     </nav>;
 };
+
 export default Navbar;

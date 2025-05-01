@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -10,7 +11,23 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { Loader2, UserCircle } from "lucide-react";
+import { 
+  Loader2, 
+  UserCircle, 
+  AlertCircle, 
+  Trash2
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileData {
   id: string;
@@ -19,14 +36,16 @@ interface ProfileData {
 }
 
 const Profile = () => {
-  const { user, supabase } = useAuth();
+  const { user, supabase, signOut } = useAuth();
   const { toast: uiToast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Fetch user profile data
   useEffect(() => {
@@ -136,6 +155,54 @@ const Profile = () => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      setDeleteLoading(true);
+      if (!user) return;
+
+      // Delete user profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Delete user avatar from storage if exists
+      if (profile?.avatar_url) {
+        const fileName = profile.avatar_url.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`avatars/${fileName}`]);
+        }
+      }
+
+      // Delete user account
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (error) throw error;
+
+      // Sign out user
+      await signOut();
+      
+      toast.success("Account deleted", {
+        description: "Your account has been successfully deleted.",
+      });
+      
+      // Redirect to home page
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast.error("Error deleting account", {
+        description: error.message || "An error occurred while deleting your account.",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -200,7 +267,42 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-end">
+                  
+                  <div className="flex justify-between items-center pt-4">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Account
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center text-destructive">
+                            <AlertCircle className="mr-2 h-5 w-5" /> Delete Account
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={deleteAccount} 
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deleteLoading}
+                          >
+                            {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Delete Account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    
                     <Button
                       onClick={updateProfile}
                       disabled={loading}
