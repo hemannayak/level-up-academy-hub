@@ -15,7 +15,8 @@ import {
   Loader2, 
   UserCircle, 
   AlertCircle, 
-  Trash2
+  Trash2,
+  LogOut
 } from "lucide-react";
 import {
   AlertDialog,
@@ -155,6 +156,16 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
+  };
+
   const deleteAccount = async () => {
     try {
       setDeleteLoading(true);
@@ -179,10 +190,6 @@ const Profile = () => {
             .remove([`avatars/${fileName}`]);
         }
       }
-
-      // Delete user account
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      if (error) throw error;
 
       // Sign out user
       await signOut();
@@ -269,39 +276,51 @@ const Profile = () => {
                   </div>
                   
                   <div className="flex justify-between items-center pt-4">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="flex items-center"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Account
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="flex items-center text-destructive">
-                            <AlertCircle className="mr-2 h-5 w-5" /> Delete Account
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={deleteAccount} 
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            disabled={deleteLoading}
+                    <div className="flex space-x-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="flex items-center"
                           >
-                            {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Delete Account
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center text-destructive">
+                              <AlertCircle className="mr-2 h-5 w-5" /> Delete Account
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={deleteAccount} 
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              disabled={deleteLoading}
+                            >
+                              {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Delete Account
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </Button>
+                    </div>
                     
                     <Button
                       onClick={updateProfile}

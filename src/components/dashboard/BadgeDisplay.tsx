@@ -44,7 +44,7 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       description: "Completed first course module",
       icon: <Zap className="h-6 w-6 text-white" />,
       dateEarned: null,
-      isLocked: true,
+      isLocked: userXP < 50,
       xpRequired: 50
     },
     {
@@ -53,7 +53,7 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       description: "Completed your first course",
       icon: <BookOpen className="h-6 w-6 text-white" />,
       dateEarned: null,
-      isLocked: true,
+      isLocked: userXP < 100,
       xpRequired: 100
     },
     {
@@ -62,7 +62,7 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       description: "Reached the 250 XP milestone",
       icon: <GraduationCap className="h-6 w-6 text-white" />,
       dateEarned: null,
-      isLocked: true,
+      isLocked: userXP < 250,
       xpRequired: 250
     },
     {
@@ -71,7 +71,7 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       description: "Reached the 500 XP milestone",
       icon: <Trophy className="h-6 w-6 text-white" />,
       dateEarned: null,
-      isLocked: true,
+      isLocked: userXP < 500,
       xpRequired: 500
     }
   ];
@@ -80,7 +80,7 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
   useEffect(() => {
     // Find badges that should be unlocked based on XP but haven't been celebrated yet
     allBadges.forEach(badge => {
-      if (!badge.isLocked) return; // Skip already unlocked badges
+      if (badge.id === 1 || badge.isLocked) return; // Skip welcome badge or locked badges
       
       if (userXP >= badge.xpRequired && !celebratedBadges.includes(badge.id)) {
         // Show celebration toast

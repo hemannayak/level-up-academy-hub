@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ type Achievement = {
   description: string;
   xpRequired: number;
   icon: React.ReactNode;
+  unlocked: boolean;
 };
 
 const LeaderBoard = () => {
@@ -35,35 +37,40 @@ const LeaderBoard = () => {
       name: "First Steps", 
       description: "Start your learning journey", 
       xpRequired: 10, 
-      icon: <Star className="h-5 w-5" />
+      icon: <Star className="h-5 w-5" />,
+      unlocked: userXP >= 10
     },
     { 
       id: 2, 
       name: "Knowledge Seeker", 
       description: "Complete your first course", 
       xpRequired: 50, 
-      icon: <Star className="h-5 w-5" /> 
+      icon: <Star className="h-5 w-5" />,
+      unlocked: userXP >= 50
     },
     { 
       id: 3, 
       name: "Dedicated Learner", 
       description: "Reach 100 XP", 
       xpRequired: 100, 
-      icon: <Medal className="h-5 w-5" /> 
+      icon: <Medal className="h-5 w-5" />,
+      unlocked: userXP >= 100
     },
     { 
       id: 4, 
       name: "Expert Status", 
       description: "Complete 5 courses", 
       xpRequired: 250, 
-      icon: <Trophy className="h-5 w-5" /> 
+      icon: <Trophy className="h-5 w-5" />,
+      unlocked: userXP >= 250
     },
     { 
       id: 5, 
       name: "Master Scholar", 
       description: "Reach 500 XP", 
       xpRequired: 500, 
-      icon: <Trophy className="h-5 w-5" /> 
+      icon: <Trophy className="h-5 w-5" />,
+      unlocked: userXP >= 500
     }
   ];
 
@@ -83,24 +90,20 @@ const LeaderBoard = () => {
         }
 
         const mockRankedUsers = data.map((profile, index) => {
-          if (user && profile.id === user.id) {
-            return {
-              id: profile.id,
-              full_name: profile.full_name,
-              xp: 0,
-              rank: data.length
-            };
-          }
+          // Generate random XP for each user (for demo purposes)
+          const randomXP = Math.floor(Math.random() * 500) + 10;
           
           return {
             id: profile.id,
-            full_name: profile.full_name,
-            xp: 100 - index * 5,
-            rank: index + 1
+            full_name: profile.full_name || "Anonymous User",
+            xp: randomXP,
+            rank: 0 // Will be calculated after sorting
           };
         });
 
-        const sortedUsers = [...mockRankedUsers].sort((a, b) => b.xp - a.xp)
+        // Sort users by XP (highest first) and assign ranks
+        const sortedUsers = [...mockRankedUsers]
+          .sort((a, b) => b.xp - a.xp)
           .map((user, index) => ({
             ...user,
             rank: index + 1
