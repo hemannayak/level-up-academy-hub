@@ -1,10 +1,12 @@
 
 import { useEffect, useState } from "react";
-import { Clock, Calendar, Flame } from "lucide-react";
+import { Clock, Calendar, Flame, Trophy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface LearningTimeData {
   id: string;
@@ -19,14 +21,42 @@ export default function LearningTimeTracker() {
   const [timeData, setTimeData] = useState<LearningTimeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionStarted, setSessionStarted] = useState<Date | null>(null);
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   // Fetch learning time data from the database
   useEffect(() => {
     if (user?.id) {
       fetchLearningTime();
+      fetchLeaderboardPosition();
       // Start tracking time when component mounts
       setSessionStarted(new Date());
     }
+  }, [user]);
+
+  // Set up real-time subscription to learning_time table
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Subscribe to changes on the learning_time table
+    const channel = supabase
+      .channel('learning_time_updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'learning_time' },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          // Refresh data when changes occur
+          fetchLearningTime();
+          fetchLeaderboardPosition();
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Update learning time when user leaves the page or when component unmounts
@@ -43,6 +73,7 @@ export default function LearningTimeTracker() {
           
           // Refresh data
           await fetchLearningTime();
+          await fetchLeaderboardPosition();
         }
       }
     };
@@ -65,6 +96,32 @@ export default function LearningTimeTracker() {
       updateLearningTime();
     };
   }, [user, sessionStarted]);
+
+  const fetchLeaderboardPosition = async () => {
+    try {
+      if (!user) return;
+
+      // Get leaderboard ranking using our function
+      const { data: leaderData, error: leaderError } = await supabase.rpc('get_leaderboard');
+
+      if (leaderError) {
+        console.error('Error fetching leaderboard:', leaderError);
+        return;
+      }
+
+      if (leaderData && leaderData.length > 0) {
+        setTotalUsers(leaderData.length);
+        
+        // Find user's position
+        const userPosition = leaderData.findIndex(item => item.user_id === user.id);
+        if (userPosition !== -1) {
+          setUserRank(userPosition + 1);
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchLeaderboardPosition:', error);
+    }
+  };
 
   const fetchLearningTime = async () => {
     try {
@@ -121,10 +178,23 @@ export default function LearningTimeTracker() {
   return (
     <Card className="shadow-sm">
       <CardContent className="pt-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Clock className="h-5 w-5 mr-2 text-levelup-purple" />
-          Your Learning Time
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold flex items-center">
+            <Clock className="h-5 w-5 mr-2 text-levelup-purple" />
+            Your Learning Time
+          </h3>
+          {userRank && (
+            <Link to="/leaderboard">
+              <div className="flex items-center gap-1 text-sm">
+                <Trophy className="h-4 w-4 text-levelup-purple" />
+                <span className="font-medium text-levelup-purple">Rank #{userRank}</span>
+                {totalUsers > 0 && (
+                  <span className="text-xs text-levelup-gray">of {totalUsers}</span>
+                )}
+              </div>
+            </Link>
+          )}
+        </div>
 
         {loading ? (
           <div className="text-center py-4 text-levelup-gray">Loading time data...</div>
@@ -168,6 +238,15 @@ export default function LearningTimeTracker() {
                   ? new Date(timeData.last_active).toLocaleDateString() 
                   : 'Today'}
               </span>
+            </div>
+            
+            <div className="pt-2 mt-2">
+              <Link to="/leaderboard">
+                <Button variant="outline" className="w-full flex items-center gap-2 border-levelup-purple text-levelup-purple hover:bg-levelup-purple hover:text-white">
+                  <Trophy className="h-4 w-4" />
+                  <span>View Leaderboard</span>
+                </Button>
+              </Link>
             </div>
           </div>
         )}

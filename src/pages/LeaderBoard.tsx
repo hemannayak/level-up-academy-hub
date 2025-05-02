@@ -4,8 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Medal, Trophy, Clock, Users } from 'lucide-react';
+import { 
+  Table, TableBody, TableCaption, TableCell, 
+  TableHead, TableHeader, TableRow 
+} from '@/components/ui/table';
+import { Medal, Trophy, Clock, Users, Award } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 
 type LeaderboardUser = {
   id: string;
@@ -18,61 +23,69 @@ type LeaderboardUser = {
 };
 
 export default function LeaderBoard() {
-  const { supabase } = useAuth();
+  const { supabase, user } = useAuth();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('time');
+  const [userRank, setUserRank] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchLeaderboardData = async () => {
-      try {
-        setLoading(true);
+  // Fetch leaderboard data using our optimized database function
+  const fetchLeaderboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Call the database function we created
+      const { data, error } = await supabase.rpc('get_leaderboard');
+      
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setLeaderboardData(data);
         
-        // Get learning time data
-        const { data: learningData, error: learningError } = await supabase
-          .from('learning_time')
-          .select('id, user_id, total_minutes, streak_days')
-          .order('total_minutes', { ascending: false });
-
-        if (learningError) throw learningError;
-
-        if (learningData && learningData.length > 0) {
-          // For each learning time entry, get the corresponding profile and user data
-          const enhancedData = await Promise.all(
-            learningData.map(async (item) => {
-              // Get profile data
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('full_name, avatar_url')
-                .eq('id', item.user_id)
-                .single();
-
-              // Get user email
-              const { data: userData } = await supabase
-                .auth.admin.getUserById(item.user_id);
-
-              return {
-                ...item,
-                full_name: profileData?.full_name || null,
-                avatar_url: profileData?.avatar_url || null,
-                email: userData?.user?.email || 'unknown@example.com',
-              };
-            })
-          );
-          
-          setLeaderboardData(enhancedData);
-        } else {
-          setLeaderboardData([]);
+        // Find user's rank
+        if (user) {
+          const userIndex = data.findIndex(item => item.user_id === user.id);
+          if (userIndex !== -1) {
+            setUserRank(userIndex + 1);
+          }
         }
-      } catch (error) {
-        console.error('Error fetching leaderboard data:', error);
+      } else {
         setLeaderboardData([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+      toast.error('Failed to load leaderboard data');
+      setLeaderboardData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Initial data fetch
+  useEffect(() => {
     fetchLeaderboardData();
+  }, [supabase, user]);
+
+  // Set up real-time subscription to learning_time table
+  useEffect(() => {
+    // Subscribe to changes on the learning_time table
+    const channel = supabase
+      .channel('learning_time_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'learning_time' },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          // Refresh the leaderboard data when changes occur
+          fetchLeaderboardData();
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [supabase]);
 
   const getMedalColor = (index: number) => {
@@ -116,6 +129,10 @@ export default function LeaderBoard() {
     return user.email[0].toUpperCase();
   };
 
+  const isCurrentUser = (leaderboardUser: LeaderboardUser) => {
+    return user && leaderboardUser.user_id === user.id;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -125,6 +142,14 @@ export default function LeaderBoard() {
             <div className="flex items-center mb-6">
               <Trophy className="h-6 w-6 text-levelup-purple mr-2" />
               <h1 className="text-2xl font-bold text-levelup-purple">Leaderboard</h1>
+              {userRank && (
+                <div className="ml-auto flex items-center gap-2 bg-levelup-light-purple/30 px-3 py-1 rounded-full">
+                  <Award className="h-4 w-4 text-levelup-purple" />
+                  <span className="text-sm font-medium text-levelup-purple">
+                    Your Rank: #{userRank}
+                  </span>
+                </div>
+              )}
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -149,47 +174,56 @@ export default function LeaderBoard() {
                     <p className="text-sm mt-1">Start learning to appear on the leaderboard!</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {leaderboardData.map((user, index) => (
-                      <div 
-                        key={user.id} 
-                        className={`flex items-center p-3 rounded-lg ${getMedalBg(index)} border transition-colors`}
-                      >
-                        <div className="w-8 text-center font-bold text-lg">
-                          {index < 3 ? (
-                            <Medal className={`h-6 w-6 ${getMedalColor(index)}`} />
-                          ) : (
-                            <span className="text-levelup-gray">{index + 1}</span>
-                          )}
-                        </div>
-                        
-                        <div className="ml-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar_url || undefined} />
-                            <AvatarFallback className="bg-levelup-purple text-white">
-                              {getInitials(user)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                        
-                        <div className="ml-3 flex-grow">
-                          <div className="font-medium">{getDisplayName(user)}</div>
-                          <div className="text-xs text-levelup-gray">{user.email}</div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="font-bold">{formatTime(user.total_minutes)}</div>
-                          <div className="text-xs text-levelup-gray">Learning time</div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-hidden rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Rank</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead className="text-right">Learning Time</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {leaderboardData.map((user, index) => (
+                          <TableRow 
+                            key={user.id} 
+                            className={isCurrentUser(user) ? 'bg-levelup-light-purple/20' : ''}
+                          >
+                            <TableCell className="font-medium">
+                              {index < 3 ? (
+                                <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                              ) : (
+                                <span>{index + 1}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={user.avatar_url || undefined} />
+                                <AvatarFallback className="bg-levelup-purple text-white">
+                                  {getInitials(user)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{getDisplayName(user)}</div>
+                                {isCurrentUser(user) && (
+                                  <span className="text-xs text-levelup-purple">(You)</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatTime(user.total_minutes)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="streak">
                 {loading ? (
-                  <div className="text-center py-8 text-levelup-gray">Loading leaderboard data...</div>
+                  <div className="text-center py-8 text-levelup-gray">Loading streak data...</div>
                 ) : leaderboardData.length === 0 ? (
                   <div className="text-center py-8 text-levelup-gray">
                     <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
@@ -197,40 +231,51 @@ export default function LeaderBoard() {
                     <p className="text-sm mt-1">Log in daily to build your streak!</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {[...leaderboardData].sort((a, b) => b.streak_days - a.streak_days).map((user, index) => (
-                      <div 
-                        key={user.id} 
-                        className={`flex items-center p-3 rounded-lg ${getMedalBg(index)} border transition-colors`}
-                      >
-                        <div className="w-8 text-center font-bold text-lg">
-                          {index < 3 ? (
-                            <Medal className={`h-6 w-6 ${getMedalColor(index)}`} />
-                          ) : (
-                            <span className="text-levelup-gray">{index + 1}</span>
-                          )}
-                        </div>
-                        
-                        <div className="ml-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar_url || undefined} />
-                            <AvatarFallback className="bg-levelup-purple text-white">
-                              {getInitials(user)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                        
-                        <div className="ml-3 flex-grow">
-                          <div className="font-medium">{getDisplayName(user)}</div>
-                          <div className="text-xs text-levelup-gray">{user.email}</div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="font-bold">{user.streak_days} days</div>
-                          <div className="text-xs text-levelup-gray">Current streak</div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-hidden rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Rank</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead className="text-right">Current Streak</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...leaderboardData]
+                          .sort((a, b) => b.streak_days - a.streak_days)
+                          .map((user, index) => (
+                            <TableRow 
+                              key={user.id} 
+                              className={isCurrentUser(user) ? 'bg-levelup-light-purple/20' : ''}
+                            >
+                              <TableCell className="font-medium">
+                                {index < 3 ? (
+                                  <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                ) : (
+                                  <span>{index + 1}</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={user.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-levelup-purple text-white">
+                                    {getInitials(user)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{getDisplayName(user)}</div>
+                                  {isCurrentUser(user) && (
+                                    <span className="text-xs text-levelup-purple">(You)</span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {user.streak_days} days
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </TabsContent>

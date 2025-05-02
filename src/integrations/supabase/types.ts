@@ -166,7 +166,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_leaderboard: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          total_minutes: number
+          streak_days: number
+          full_name: string
+          avatar_url: string
+          email: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
