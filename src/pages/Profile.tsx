@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,15 +49,33 @@ import {
   LogOut,
   Trash2,
   FileText,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Globe
 } from "lucide-react";
+
+// Extend the profile type to match our expected fields
+type ExtendedProfile = {
+  full_name: string;
+  avatar_url: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  phone?: string;
+  birth_date?: string;
+  interests?: any[];
+  education?: string;
+  occupation?: string;
+  created_at: string;
+  updated_at: string;
+  id: string;
+};
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, supabase, signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<ExtendedProfile>({
     full_name: "",
     avatar_url: "",
     bio: "",
@@ -68,8 +85,12 @@ export default function Profile() {
     birth_date: "",
     interests: [],
     education: "",
-    occupation: ""
+    occupation: "",
+    created_at: "",
+    updated_at: "",
+    id: ""
   });
+  
   const [userStats, setUserStats] = useState({
     totalMinutes: 0,
     totalCourses: 0,
@@ -102,6 +123,7 @@ export default function Profile() {
       if (error) throw error;
       
       if (data) {
+        // Create a complete profile object with possible missing fields
         setProfile({
           full_name: data.full_name || "",
           avatar_url: data.avatar_url || "",
@@ -112,7 +134,10 @@ export default function Profile() {
           birth_date: data.birth_date || "",
           interests: data.interests || [],
           education: data.education || "",
-          occupation: data.occupation || ""
+          occupation: data.occupation || "",
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          id: data.id
         });
         
         // Set avatar URL
@@ -292,12 +317,7 @@ export default function Profile() {
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
               <div className="relative">
-                <AvatarUpload 
-                  uid={user.id}
-                  url={avatarUrl}
-                  size={100}
-                  onUpload={handleAvatarUpload}
-                />
+                <AvatarUpload />
               </div>
               
               <div>

@@ -27,33 +27,46 @@ export default function LeaderBoard() {
     const fetchLeaderboardData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Get learning time data
+        const { data: learningData, error: learningError } = await supabase
           .from('learning_time')
-          .select(`
-            id, user_id, total_minutes, streak_days, 
-            profiles:user_id (full_name, avatar_url),
-            users:user_id (email)
-          `)
+          .select('id, user_id, total_minutes, streak_days')
           .order('total_minutes', { ascending: false });
 
-        if (error) throw error;
+        if (learningError) throw learningError;
 
-        if (data) {
-          // Transform the data to the expected format
-          const formattedData = data.map(item => ({
-            id: item.id,
-            user_id: item.user_id,
-            total_minutes: item.total_minutes,
-            streak_days: item.streak_days,
-            full_name: item.profiles?.full_name || null,
-            avatar_url: item.profiles?.avatar_url || null,
-            email: item.users?.email || '',
-          }));
+        if (learningData && learningData.length > 0) {
+          // For each learning time entry, get the corresponding profile and user data
+          const enhancedData = await Promise.all(
+            learningData.map(async (item) => {
+              // Get profile data
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', item.user_id)
+                .single();
+
+              // Get user email
+              const { data: userData } = await supabase
+                .auth.admin.getUserById(item.user_id);
+
+              return {
+                ...item,
+                full_name: profileData?.full_name || null,
+                avatar_url: profileData?.avatar_url || null,
+                email: userData?.user?.email || 'unknown@example.com',
+              };
+            })
+          );
           
-          setLeaderboardData(formattedData);
+          setLeaderboardData(enhancedData);
+        } else {
+          setLeaderboardData([]);
         }
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
+        setLeaderboardData([]);
       } finally {
         setLoading(false);
       }
