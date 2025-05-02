@@ -53,7 +53,9 @@ import {
   Globe
 } from "lucide-react";
 
-// Extend the profile type to match our expected fields
+// First, we need to update the Supabase database with the additional profile fields
+// We'll create a SQL query to add these fields to the profiles table
+// For now, let's define the extended profile type
 type ExtendedProfile = {
   full_name: string;
   avatar_url: string;
@@ -123,8 +125,8 @@ export default function Profile() {
       if (error) throw error;
       
       if (data) {
-        // Create a complete profile object with possible missing fields
-        setProfile({
+        // Create a complete profile object with default values for missing fields
+        const completeProfile: ExtendedProfile = {
           full_name: data.full_name || "",
           avatar_url: data.avatar_url || "",
           bio: data.bio || "",
@@ -138,7 +140,9 @@ export default function Profile() {
           created_at: data.created_at,
           updated_at: data.updated_at,
           id: data.id
-        });
+        };
+        
+        setProfile(completeProfile);
         
         // Set avatar URL
         if (data.avatar_url) {
