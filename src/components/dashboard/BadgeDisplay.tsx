@@ -1,9 +1,16 @@
 
 import { useEffect, useState } from "react";
-import { Award, Info, Lock, UserPlus, Trophy, BookOpen, GraduationCap, Zap } from "lucide-react";
+import { Award, Info, Lock, UserPlus, Trophy, BookOpen, GraduationCap, Zap, PartyPopper } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Badge {
   id: number;
@@ -22,6 +29,8 @@ interface Props {
 const BadgeDisplay = ({ userXP = 0 }: Props) => {
   // Track which badges have been celebrated already
   const [celebratedBadges, setCelebratedBadges] = useState<number[]>([]);
+  const [showBadgeDialog, setShowBadgeDialog] = useState(false);
+  const [newBadge, setNewBadge] = useState<Badge | null>(null);
   
   // Get current date for the signup badge
   const today = new Date();
@@ -83,23 +92,9 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
       if (badge.id === 1 || badge.isLocked) return; // Skip welcome badge or locked badges
       
       if (userXP >= badge.xpRequired && !celebratedBadges.includes(badge.id)) {
-        // Show celebration toast
-        toast(
-          <div className="flex items-center gap-3">
-            <div className="bg-levelup-purple rounded-full p-2">
-              {badge.icon}
-            </div>
-            <div>
-              <p className="font-bold text-levelup-purple">Badge Earned!</p>
-              <p>{badge.title}</p>
-            </div>
-          </div>,
-          {
-            duration: 5000,
-            className: "badge-toast",
-            position: "top-center"
-          }
-        );
+        // Set the new badge for celebration dialog
+        setNewBadge({...badge, dateEarned: formattedDate, isLocked: false});
+        setShowBadgeDialog(true);
         
         // Add to celebrated badges
         setCelebratedBadges(prev => [...prev, badge.id]);
@@ -120,51 +115,87 @@ const BadgeDisplay = ({ userXP = 0 }: Props) => {
     .filter((badge) => badge.isLocked && userXP < badge.xpRequired);
   
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <Award className="h-5 w-5 text-levelup-purple mr-2" />
-          <h2 className="text-xl font-bold text-levelup-purple">Your Achievements</h2>
-        </div>
-        <div className="text-sm text-levelup-gray">
-          <span className="font-medium text-levelup-purple">{earnedBadges.length}</span> of {allBadges.length} earned
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="flex justify-between text-sm mb-1">
-          <span className="font-medium text-levelup-purple">Your XP</span>
-          <span className="text-levelup-gray">{userXP} XP</span>
-        </div>
-        <Progress value={(userXP / 500) * 100} className="h-2" />
-      </div>
-
-      <div className="mb-6">
-        <h3 className="font-bold mb-4 text-levelup-purple">Earned Badges</h3>
-        {earnedBadges.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {earnedBadges.map((badge) => (
-              <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
-            ))}
+    <>
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center">
+            <Award className="h-5 w-5 text-levelup-purple mr-2" />
+            <h2 className="text-xl font-bold text-levelup-purple">Your Achievements</h2>
           </div>
-        ) : (
-          <div className="text-center py-4 bg-gray-50 rounded-lg text-levelup-gray">
-            Complete courses and activities to earn badges
+          <div className="text-sm text-levelup-gray">
+            <span className="font-medium text-levelup-purple">{earnedBadges.length}</span> of {allBadges.length} earned
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <div className="flex justify-between text-sm mb-1">
+            <span className="font-medium text-levelup-purple">Your XP</span>
+            <span className="text-levelup-gray">{userXP} XP</span>
+          </div>
+          <Progress value={(userXP / 500) * 100} className="h-2" />
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-bold mb-4 text-levelup-purple">Earned Badges</h3>
+          {earnedBadges.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {earnedBadges.map((badge) => (
+                <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 bg-gray-50 rounded-lg text-levelup-gray">
+              Complete courses and activities to earn badges
+            </div>
+          )}
+        </div>
+
+        {lockedBadges.length > 0 && (
+          <div>
+            <h3 className="font-bold mb-4 text-levelup-purple">Badges to Unlock</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {lockedBadges.map((badge) => (
+                <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {lockedBadges.length > 0 && (
-        <div>
-          <h3 className="font-bold mb-4 text-levelup-purple">Badges to Unlock</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {lockedBadges.map((badge) => (
-              <BadgeItem key={badge.id} badge={badge} userXP={userXP} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+      <Dialog open={showBadgeDialog} onOpenChange={setShowBadgeDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center">
+            <div className="relative">
+              <div className="absolute -top-6 -left-4">
+                <PartyPopper className="h-10 w-10 text-yellow-500 animate-bounce" />
+              </div>
+              <div className="absolute -top-6 -right-4">
+                <PartyPopper className="h-10 w-10 text-yellow-500 animate-bounce" />
+              </div>
+            </div>
+            <DialogTitle className="text-2xl text-levelup-purple mt-8">
+              Congratulations!
+            </DialogTitle>
+            <DialogDescription className="text-levelup-gray">
+              You've unlocked a new badge!
+            </DialogDescription>
+          </DialogHeader>
+          
+          {newBadge && (
+            <div className="flex flex-col items-center py-4">
+              <div className="w-24 h-24 mb-4 rounded-full bg-levelup-light-purple flex items-center justify-center animate-scale-in">
+                {newBadge.icon}
+              </div>
+              <h3 className="text-xl font-bold text-levelup-purple">{newBadge.title}</h3>
+              <p className="text-levelup-gray mt-2 text-center">{newBadge.description}</p>
+              <p className="text-sm text-levelup-gray mt-4">
+                Earned on {newBadge.dateEarned}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

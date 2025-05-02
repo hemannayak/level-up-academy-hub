@@ -8,7 +8,7 @@ import {
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from '@/components/ui/table';
-import { Medal, Trophy, Clock, Users, Award } from 'lucide-react';
+import { Medal, Trophy, Clock, Users, Award, Mail } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 
@@ -180,38 +180,47 @@ export default function LeaderBoard() {
                         <TableRow>
                           <TableHead className="w-12">Rank</TableHead>
                           <TableHead>User</TableHead>
+                          <TableHead className="hidden md:table-cell">Email</TableHead>
                           <TableHead className="text-right">Learning Time</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {leaderboardData.map((user, index) => (
+                        {leaderboardData.map((userData, index) => (
                           <TableRow 
-                            key={user.id} 
-                            className={isCurrentUser(user) ? 'bg-levelup-light-purple/20' : ''}
+                            key={userData.id} 
+                            className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
                           >
                             <TableCell className="font-medium">
                               {index < 3 ? (
-                                <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
+                                  <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                </div>
                               ) : (
-                                <span>{index + 1}</span>
+                                <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
                               )}
                             </TableCell>
                             <TableCell className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={user.avatar_url || undefined} />
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={userData.avatar_url || undefined} />
                                 <AvatarFallback className="bg-levelup-purple text-white">
-                                  {getInitials(user)}
+                                  {getInitials(userData)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">{getDisplayName(user)}</div>
-                                {isCurrentUser(user) && (
+                                <div className="font-medium">{getDisplayName(userData)}</div>
+                                {isCurrentUser(userData) && (
                                   <span className="text-xs text-levelup-purple">(You)</span>
                                 )}
                               </div>
                             </TableCell>
+                            <TableCell className="hidden md:table-cell text-levelup-gray text-sm">
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
+                                {userData.email}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-right font-medium">
-                              {formatTime(user.total_minutes)}
+                              {formatTime(userData.total_minutes)}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -237,40 +246,49 @@ export default function LeaderBoard() {
                         <TableRow>
                           <TableHead className="w-12">Rank</TableHead>
                           <TableHead>User</TableHead>
+                          <TableHead className="hidden md:table-cell">Email</TableHead>
                           <TableHead className="text-right">Current Streak</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {[...leaderboardData]
                           .sort((a, b) => b.streak_days - a.streak_days)
-                          .map((user, index) => (
+                          .map((userData, index) => (
                             <TableRow 
-                              key={user.id} 
-                              className={isCurrentUser(user) ? 'bg-levelup-light-purple/20' : ''}
+                              key={userData.id} 
+                              className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
                             >
                               <TableCell className="font-medium">
                                 {index < 3 ? (
-                                  <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
+                                    <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                  </div>
                                 ) : (
-                                  <span>{index + 1}</span>
+                                  <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
                                 )}
                               </TableCell>
                               <TableCell className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={user.avatar_url || undefined} />
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={userData.avatar_url || undefined} />
                                   <AvatarFallback className="bg-levelup-purple text-white">
-                                    {getInitials(user)}
+                                    {getInitials(userData)}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{getDisplayName(user)}</div>
-                                  {isCurrentUser(user) && (
+                                  <div className="font-medium">{getDisplayName(userData)}</div>
+                                  {isCurrentUser(userData) && (
                                     <span className="text-xs text-levelup-purple">(You)</span>
                                   )}
                                 </div>
                               </TableCell>
+                              <TableCell className="hidden md:table-cell text-levelup-gray text-sm">
+                                <div className="flex items-center">
+                                  <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
+                                  {userData.email}
+                                </div>
+                              </TableCell>
                               <TableCell className="text-right font-medium">
-                                {user.streak_days} days
+                                {userData.streak_days} days
                               </TableCell>
                             </TableRow>
                           ))}
