@@ -1,76 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import AvatarUpload from "@/components/profile/AvatarUpload";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Award,
-  Clock,
-  BookOpen,
-  LogOut,
-  Trash2,
-  FileText,
-  Settings as SettingsIcon,
-  Globe
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { User, FileText } from "lucide-react";
+import { ExtendedProfile } from "@/types/profile";
 
-// First, we need to update the Supabase database with the additional profile fields
-// We'll create a SQL query to add these fields to the profiles table
-// For now, let's define the extended profile type
-type ExtendedProfile = {
-  full_name: string;
-  avatar_url: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  phone?: string;
-  birth_date?: string;
-  interests?: any[];
-  education?: string;
-  occupation?: string;
-  created_at: string;
-  updated_at: string;
-  id: string;
-};
+// Import the component files we just created
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import ProfileStats from "@/components/profile/ProfileStats";
+import AboutTab from "@/components/profile/AboutTab";
+import ActivityTab from "@/components/profile/ActivityTab";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -90,7 +35,8 @@ export default function Profile() {
     occupation: "",
     created_at: "",
     updated_at: "",
-    id: ""
+    id: "",
+    email: user?.email
   });
   
   const [userStats, setUserStats] = useState({
@@ -139,7 +85,8 @@ export default function Profile() {
           occupation: data.occupation || "",
           created_at: data.created_at,
           updated_at: data.updated_at,
-          id: data.id
+          id: data.id,
+          email: user.email
         };
         
         setProfile(completeProfile);
@@ -304,13 +251,6 @@ export default function Profile() {
       </div>
     );
   }
-  
-  const formatTime = (minutes) => {
-    if (minutes < 60) return `${minutes} minutes`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -319,141 +259,22 @@ export default function Profile() {
       <main className="flex-grow bg-gray-50">
         <div className="levelup-container py-8">
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
-              <div className="relative">
-                <AvatarUpload />
-              </div>
-              
-              <div>
-                <h1 className="text-2xl font-bold">{profile.full_name || user.email?.split('@')[0]}</h1>
-                <p className="text-levelup-gray">{user.email}</p>
-                {profile.occupation && (
-                  <p className="mt-1 text-levelup-purple font-medium">{profile.occupation}</p>
-                )}
-                {profile.location && (
-                  <p className="flex items-center mt-2 text-sm text-levelup-gray">
-                    <MapPin className="h-4 w-4 mr-1" /> {profile.location}
-                  </p>
-                )}
-              </div>
-              
-              <div className="md:ml-auto flex space-x-3">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="flex items-center">
-                      <SettingsIcon className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                      <DialogTitle>Edit Profile</DialogTitle>
-                      <DialogDescription>
-                        Update your profile information
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <form className="space-y-4 py-4" onSubmit={(e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
-                      const values = {
-                        full_name: formData.get('full_name'),
-                        bio: formData.get('bio'),
-                        location: formData.get('location'),
-                        website: formData.get('website'),
-                        phone: formData.get('phone'),
-                        occupation: formData.get('occupation'),
-                      };
-                      handleUpdateProfile(values);
-                    }}>
-                      <div>
-                        <Label htmlFor="full_name">Full Name</Label>
-                        <Input id="full_name" name="full_name" defaultValue={profile.full_name} />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="bio">Bio</Label>
-                        <Textarea id="bio" name="bio" defaultValue={profile.bio} />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="location">Location</Label>
-                          <Input id="location" name="location" defaultValue={profile.location} />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="website">Website</Label>
-                          <Input id="website" name="website" defaultValue={profile.website} />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="phone">Phone</Label>
-                          <Input id="phone" name="phone" defaultValue={profile.phone} />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="occupation">Occupation</Label>
-                          <Input id="occupation" name="occupation" defaultValue={profile.occupation} />
-                        </div>
-                      </div>
-                      
-                      <DialogFooter>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? "Saving..." : "Save changes"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-
-                <Button variant="ghost" onClick={handleLogout} className="flex items-center">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            </div>
+            {/* Profile Header Component */}
+            <ProfileHeader 
+              profile={profile}
+              loading={loading}
+              handleLogout={handleLogout}
+              handleUpdateProfile={handleUpdateProfile}
+            />
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <div className="bg-levelup-light-purple p-2 rounded-full">
-                    <Clock className="h-5 w-5 text-levelup-purple" />
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-levelup-gray text-sm">Learning Time</div>
-                    <div className="font-bold">{formatTime(userStats.totalMinutes)}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <div className="bg-levelup-light-purple p-2 rounded-full">
-                    <BookOpen className="h-5 w-5 text-levelup-purple" />
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-levelup-gray text-sm">Courses Completed</div>
-                    <div className="font-bold">{userStats.totalCourses}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <div className="bg-levelup-light-purple p-2 rounded-full">
-                    <Award className="h-5 w-5 text-levelup-purple" />
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-levelup-gray text-sm">XP Earned</div>
-                    <div className="font-bold">{userStats.totalPoints} XP</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Profile Stats Component */}
+            <ProfileStats
+              totalMinutes={userStats.totalMinutes}
+              totalCourses={userStats.totalCourses}
+              totalPoints={userStats.totalPoints}
+            />
             
+            {/* Profile Tabs */}
             <Tabs defaultValue="about" className="w-full">
               <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex mb-6">
                 <TabsTrigger value="about" className="flex items-center">
@@ -467,116 +288,15 @@ export default function Profile() {
               </TabsList>
               
               <TabsContent value="about">
-                <div className="space-y-6">
-                  {profile.bio && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Bio</h3>
-                      <p className="text-levelup-gray">{profile.bio}</p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold mb-2">Contact Information</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center">
-                          <Mail className="h-4 w-4 text-levelup-gray mr-2" />
-                          <span>{user.email}</span>
-                        </div>
-                        {profile.phone && (
-                          <div className="flex items-center">
-                            <Phone className="h-4 w-4 text-levelup-gray mr-2" />
-                            <span>{profile.phone}</span>
-                          </div>
-                        )}
-                        {profile.website && (
-                          <div className="flex items-center">
-                            <Globe className="h-4 w-4 text-levelup-gray mr-2" />
-                            <a 
-                              href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-levelup-purple hover:underline"
-                            >
-                              {profile.website}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-semibold mb-2">Account Information</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 text-levelup-gray mr-2" />
-                          <span>Joined {new Date(user.created_at).toLocaleDateString()}</span>
-                        </div>
-                        {profile.birth_date && (
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-levelup-gray mr-2" />
-                            <span>Born {new Date(profile.birth_date).toLocaleDateString()}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4 mt-6 border-t">
-                    <h3 className="font-semibold text-red-600">Danger Zone</h3>
-                    <p className="text-sm text-gray-500 mt-1">Irreversible actions for your account</p>
-                    
-                    <div className="mt-4">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" className="flex items-center">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Account
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your
-                              account and all of your data from our servers.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={handleDeleteAccount}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Delete Account
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </div>
+                <AboutTab 
+                  profile={profile}
+                  user={user}
+                  handleDeleteAccount={handleDeleteAccount}
+                />
               </TabsContent>
               
               <TabsContent value="activity">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-4">Learning Activity</h3>
-                    <div className="text-center py-6 bg-gray-50 rounded-lg text-levelup-gray">
-                      {userStats.totalMinutes > 0 ? (
-                        <div className="space-y-2">
-                          <p>You've spent {formatTime(userStats.totalMinutes)} learning!</p>
-                          <p className="text-sm">Keep going to increase your skills.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <p>No learning activity recorded yet.</p>
-                          <p className="text-sm">Start a course to track your progress!</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <ActivityTab totalMinutes={userStats.totalMinutes} />
               </TabsContent>
             </Tabs>
           </div>
@@ -587,6 +307,3 @@ export default function Profile() {
     </div>
   );
 }
-
-// Ensure we have the Globe icon for website links
-import { Globe } from "lucide-react";
