@@ -8,7 +8,7 @@ import {
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from '@/components/ui/table';
-import { Medal, Trophy, Clock, Users, Award, Mail } from 'lucide-react';
+import { Medal, Trophy, Clock, Users, Award, Mail, Zap } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ type LeaderboardUser = {
   full_name: string | null;
   avatar_url: string | null;
   email: string;
+  xp_points: number;
 };
 
 export default function LeaderBoard() {
@@ -49,16 +50,23 @@ export default function LeaderBoard() {
 
       if (data && Array.isArray(data) && data.length > 0) {
         console.log('Leaderboard data loaded:', data.length, 'users');
-        setLeaderboardData(data);
+        
+        // Process data to ensure all users have XP (even if zero)
+        const processedData = data.map(item => ({
+          ...item,
+          xp_points: item.total_minutes * 10 // Calculate XP based on minutes (10 XP per minute)
+        }));
+        
+        setLeaderboardData(processedData);
         
         // Find user's rank
         if (user) {
-          const userIndex = data.findIndex(item => item.user_id === user.id);
+          const userIndex = processedData.findIndex(item => item.user_id === user.id);
           if (userIndex !== -1) {
             setUserRank(userIndex + 1);
           }
         }
-        setTotalUsers(data.length);
+        setTotalUsers(processedData.length);
       } else {
         console.log('No leaderboard data found');
         setLeaderboardData([]);
@@ -99,6 +107,26 @@ export default function LeaderBoard() {
     };
   }, [supabase]);
 
+  // Subscribe to changes on the profiles table
+  useEffect(() => {
+    const profilesChannel = supabase
+      .channel('profiles_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        (payload) => {
+          console.log('Profile update received:', payload);
+          // Refresh the leaderboard data when profiles change
+          fetchLeaderboardData();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(profilesChannel);
+    };
+  }, [supabase]);
+
   const getMedalColor = (index: number) => {
     switch(index) {
       case 0: return 'text-yellow-500'; // Gold
@@ -122,6 +150,10 @@ export default function LeaderBoard() {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     return `${hours}h ${remainingMinutes > 0 ? `${remainingMinutes}m` : ''}`;
+  };
+
+  const formatXP = (xp: number) => {
+    return xp.toLocaleString();
   };
 
   const getDisplayName = (user: LeaderboardUser) => {
@@ -148,6 +180,18 @@ export default function LeaderBoard() {
     fetchLeaderboardData();
   };
 
+  // Helper to sort data based on active tab
+  const getSortedData = () => {
+    if (activeTab === 'time') {
+      return [...leaderboardData].sort((a, b) => b.total_minutes - a.total_minutes);
+    } else if (activeTab === 'streak') {
+      return [...leaderboardData].sort((a, b) => b.streak_days - a.streak_days);
+    } else if (activeTab === 'xp') {
+      return [...leaderboardData].sort((a, b) => b.xp_points - a.xp_points);
+    }
+    return leaderboardData;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -168,10 +212,14 @@ export default function LeaderBoard() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="time" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span>Learning Time</span>
+                </TabsTrigger>
+                <TabsTrigger value="xp" className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  <span>XP Points</span>
                 </TabsTrigger>
                 <TabsTrigger value="streak" className="flex items-center gap-2">
                   <Medal className="h-4 w-4" />
@@ -216,10 +264,11 @@ export default function LeaderBoard() {
                           <TableHead>User</TableHead>
                           <TableHead className="table-cell">Email</TableHead>
                           <TableHead className="text-right">Learning Time</TableHead>
+                          <TableHead className="text-right">XP</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {leaderboardData.map((userData, index) => (
+                        {getSortedData().map((userData, index) => (
                           <TableRow 
                             key={userData.id} 
                             className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
@@ -256,8 +305,104 @@ export default function LeaderBoard() {
                             <TableCell className="text-right font-medium">
                               {formatTime(userData.total_minutes)}
                             </TableCell>
+                            <TableCell className="text-right font-medium">
+                              <div className="flex items-center justify-end">
+                                <Zap className="h-3.5 w-3.5 mr-1 text-yellow-500" />
+                                {formatXP(userData.xp_points)}
+                              </div>
+                            </TableCell>
                           </TableRow>
                         ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="xp">
+                {loading ? (
+                  <div className="text-center py-8 text-levelup-gray">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-10 w-10 bg-levelup-light-purple/30 rounded-full mb-3"></div>
+                      <div className="h-4 w-32 bg-levelup-light-purple/30 rounded mb-2"></div>
+                      <div className="h-3 w-48 bg-levelup-light-purple/20 rounded"></div>
+                    </div>
+                    <p className="mt-4">Loading XP data...</p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8 text-levelup-gray">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4 border-levelup-purple text-levelup-purple hover:bg-levelup-purple hover:text-white"
+                      onClick={handleRetry}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : leaderboardData.length === 0 ? (
+                  <div className="text-center py-8 text-levelup-gray">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
+                    <p>No XP data recorded yet.</p>
+                    <p className="text-sm mt-1">Start learning to earn XP!</p>
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Rank</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead className="table-cell">Email</TableHead>
+                          <TableHead className="text-right">XP</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...leaderboardData]
+                          .sort((a, b) => b.xp_points - a.xp_points)
+                          .map((userData, index) => (
+                            <TableRow 
+                              key={userData.id} 
+                              className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
+                            >
+                              <TableCell className="font-medium">
+                                {index < 3 ? (
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
+                                    <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                  </div>
+                                ) : (
+                                  <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={userData.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-levelup-purple text-white">
+                                    {getInitials(userData)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{getDisplayName(userData)}</div>
+                                  {isCurrentUser(userData) && (
+                                    <span className="text-xs text-levelup-purple">(You)</span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-levelup-gray text-sm">
+                                <div className="flex items-center">
+                                  <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
+                                  {userData.email}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                <div className="flex items-center justify-end">
+                                  <Zap className="h-4 w-4 mr-1 text-yellow-500" />
+                                  {formatXP(userData.xp_points)}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </div>
@@ -301,6 +446,7 @@ export default function LeaderBoard() {
                           <TableHead>User</TableHead>
                           <TableHead className="table-cell">Email</TableHead>
                           <TableHead className="text-right">Current Streak</TableHead>
+                          <TableHead className="text-right">XP</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -342,6 +488,12 @@ export default function LeaderBoard() {
                               </TableCell>
                               <TableCell className="text-right font-medium">
                                 {userData.streak_days} days
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                <div className="flex items-center justify-end">
+                                  <Zap className="h-3.5 w-3.5 mr-1 text-yellow-500" />
+                                  {formatXP(userData.xp_points)}
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
