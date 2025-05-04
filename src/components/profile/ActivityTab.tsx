@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface ActivityTabProps {
   totalMinutes: number;
@@ -23,6 +24,24 @@ export default function ActivityTab({ totalMinutes }: ActivityTabProps) {
       // Show celebration dialog
       setShowMilestoneDialog(true);
       setLastMilestone(milestone);
+      
+      // Show toast notification
+      toast(
+        <div className="flex items-center gap-3">
+          <div className="bg-yellow-100 rounded-full p-2">
+            <Trophy className="h-6 w-6 text-yellow-500" />
+          </div>
+          <div>
+            <p className="font-bold text-levelup-purple">Milestone Reached!</p>
+            <p>You've reached the {formatTime(milestone)} milestone</p>
+          </div>
+        </div>,
+        {
+          duration: 5000,
+          className: "milestone-toast",
+          position: "top-center"
+        }
+      );
     } else if (totalMinutes > 0) {
       // Initialize last milestone on first load
       const highestMilestoneReached = [...milestones]

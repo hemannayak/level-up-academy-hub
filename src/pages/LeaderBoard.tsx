@@ -37,9 +37,13 @@ export default function LeaderBoard() {
       // Call the database function we created
       const { data, error } = await supabase.rpc('get_leaderboard');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching leaderboard data:', error);
+        throw error;
+      }
 
       if (data && data.length > 0) {
+        console.log('Leaderboard data loaded:', data.length, 'users');
         setLeaderboardData(data);
         
         // Find user's rank
@@ -50,11 +54,12 @@ export default function LeaderBoard() {
           }
         }
       } else {
+        console.log('No leaderboard data found');
         setLeaderboardData([]);
       }
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
-      toast.error('Failed to load leaderboard data');
+      toast.error('Failed to load leaderboard data. Please try again later.');
       setLeaderboardData([]);
     } finally {
       setLoading(false);
@@ -180,7 +185,7 @@ export default function LeaderBoard() {
                         <TableRow>
                           <TableHead className="w-12">Rank</TableHead>
                           <TableHead>User</TableHead>
-                          <TableHead className="hidden md:table-cell">Email</TableHead>
+                          <TableHead className="table-cell">Email</TableHead>
                           <TableHead className="text-right">Learning Time</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -213,7 +218,7 @@ export default function LeaderBoard() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="hidden md:table-cell text-levelup-gray text-sm">
+                            <TableCell className="text-levelup-gray text-sm">
                               <div className="flex items-center">
                                 <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
                                 {userData.email}
@@ -246,7 +251,7 @@ export default function LeaderBoard() {
                         <TableRow>
                           <TableHead className="w-12">Rank</TableHead>
                           <TableHead>User</TableHead>
-                          <TableHead className="hidden md:table-cell">Email</TableHead>
+                          <TableHead className="table-cell">Email</TableHead>
                           <TableHead className="text-right">Current Streak</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -281,7 +286,7 @@ export default function LeaderBoard() {
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell className="hidden md:table-cell text-levelup-gray text-sm">
+                              <TableCell className="text-levelup-gray text-sm">
                                 <div className="flex items-center">
                                   <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
                                   {userData.email}
