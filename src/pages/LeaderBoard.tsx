@@ -11,6 +11,7 @@ import {
 import { Medal, Trophy, Clock, Users, Award, Mail } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 type LeaderboardUser = {
   id: string;
@@ -26,23 +27,27 @@ export default function LeaderBoard() {
   const { supabase, user } = useAuth();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('time');
   const [userRank, setUserRank] = useState<number | null>(null);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   // Fetch leaderboard data using our optimized database function
   const fetchLeaderboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Call the database function we created
       const { data, error } = await supabase.rpc('get_leaderboard');
       
       if (error) {
         console.error('Error fetching leaderboard data:', error);
+        setError('Failed to load leaderboard data');
         throw error;
       }
 
-      if (data && data.length > 0) {
+      if (data && Array.isArray(data) && data.length > 0) {
         console.log('Leaderboard data loaded:', data.length, 'users');
         setLeaderboardData(data);
         
@@ -53,13 +58,14 @@ export default function LeaderBoard() {
             setUserRank(userIndex + 1);
           }
         }
+        setTotalUsers(data.length);
       } else {
         console.log('No leaderboard data found');
         setLeaderboardData([]);
       }
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
-      toast.error('Failed to load leaderboard data. Please try again later.');
+      setError('Failed to load leaderboard data. Please try again later.');
       setLeaderboardData([]);
     } finally {
       setLoading(false);
@@ -138,6 +144,10 @@ export default function LeaderBoard() {
     return user && leaderboardUser.user_id === user.id;
   };
 
+  const handleRetry = () => {
+    fetchLeaderboardData();
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -171,7 +181,26 @@ export default function LeaderBoard() {
 
               <TabsContent value="time">
                 {loading ? (
-                  <div className="text-center py-8 text-levelup-gray">Loading leaderboard data...</div>
+                  <div className="text-center py-8 text-levelup-gray">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-10 w-10 bg-levelup-light-purple/30 rounded-full mb-3"></div>
+                      <div className="h-4 w-32 bg-levelup-light-purple/30 rounded mb-2"></div>
+                      <div className="h-3 w-48 bg-levelup-light-purple/20 rounded"></div>
+                    </div>
+                    <p className="mt-4">Loading leaderboard data...</p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8 text-levelup-gray">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4 border-levelup-purple text-levelup-purple hover:bg-levelup-purple hover:text-white"
+                      onClick={handleRetry}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
                 ) : leaderboardData.length === 0 ? (
                   <div className="text-center py-8 text-levelup-gray">
                     <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
@@ -237,7 +266,26 @@ export default function LeaderBoard() {
 
               <TabsContent value="streak">
                 {loading ? (
-                  <div className="text-center py-8 text-levelup-gray">Loading streak data...</div>
+                  <div className="text-center py-8 text-levelup-gray">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-10 w-10 bg-levelup-light-purple/30 rounded-full mb-3"></div>
+                      <div className="h-4 w-32 bg-levelup-light-purple/30 rounded mb-2"></div>
+                      <div className="h-3 w-48 bg-levelup-light-purple/20 rounded"></div>
+                    </div>
+                    <p className="mt-4">Loading streak data...</p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8 text-levelup-gray">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4 border-levelup-purple text-levelup-purple hover:bg-levelup-purple hover:text-white"
+                      onClick={handleRetry}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
                 ) : leaderboardData.length === 0 ? (
                   <div className="text-center py-8 text-levelup-gray">
                     <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
