@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/layout/Navbar';
@@ -53,7 +52,9 @@ export default function LeaderBoard() {
         // Process the data - hide emails for users that are not the current user
         const processedData = data.map(item => ({
           ...item,
-          email: user && item.user_id === user.id ? item.email : 'Email hidden'
+          email: user && item.user_id === user.id ? item.email : 'Email hidden',
+          // Ensure xp_points is never undefined
+          xp_points: item.xp_points || 0
         }));
         
         console.log('Leaderboard data loaded:', processedData.length, 'users');
@@ -164,7 +165,9 @@ export default function LeaderBoard() {
     return `${hours}h ${remainingMinutes > 0 ? `${remainingMinutes}m` : ''}`;
   };
 
-  const formatXP = (xp: number) => {
+  // Updated formatXP function to handle undefined values
+  const formatXP = (xp: number | undefined) => {
+    if (xp === undefined || xp === null) return '0';
     return xp.toLocaleString();
   };
 
@@ -199,7 +202,7 @@ export default function LeaderBoard() {
     } else if (tab === 'streak') {
       return [...data].sort((a, b) => b.streak_days - a.streak_days);
     } else if (tab === 'xp') {
-      return [...data].sort((a, b) => b.xp_points - a.xp_points);
+      return [...data].sort((a, b) => (b.xp_points || 0) - (a.xp_points || 0));
     }
     return data;
   };
