@@ -8,7 +8,8 @@ RETURNS TABLE (
   streak_days INTEGER,
   full_name TEXT,
   avatar_url TEXT,
-  email TEXT
+  email TEXT,
+  xp_points INTEGER
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -16,21 +17,22 @@ AS $$
 BEGIN
   RETURN QUERY
   SELECT
-    lt.id,
-    lt.user_id,
-    lt.total_minutes,
-    lt.streak_days,
+    COALESCE(lt.id, p.id) as id,
+    COALESCE(lt.user_id, p.id) as user_id,
+    COALESCE(lt.total_minutes, 0) as total_minutes,
+    COALESCE(lt.streak_days, 0) as streak_days,
     p.full_name,
     p.avatar_url,
-    u.email
+    u.email,
+    COALESCE(lt.total_minutes, 0) * 10 as xp_points
   FROM
-    public.learning_time lt
-  JOIN
-    auth.users u ON lt.user_id = u.id
+    public.profiles p
   LEFT JOIN
-    public.profiles p ON lt.user_id = p.id
+    auth.users u ON p.id = u.id
+  LEFT JOIN
+    public.learning_time lt ON p.id = lt.user_id
   ORDER BY
-    lt.total_minutes DESC
-  LIMIT 100;
+    COALESCE(lt.total_minutes, 0) DESC,
+    p.created_at ASC;
 END;
 $$;

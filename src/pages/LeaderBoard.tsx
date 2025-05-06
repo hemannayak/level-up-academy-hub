@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/layout/Navbar';
@@ -15,8 +16,8 @@ import { Button } from '@/components/ui/button';
 type LeaderboardUser = {
   id: string;
   user_id: string;
-  total_minutes: number | null;
-  streak_days: number | null;
+  total_minutes: number;
+  streak_days: number;
   full_name: string | null;
   avatar_url: string | null;
   email: string;
@@ -32,93 +33,41 @@ export default function LeaderBoard() {
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
 
-  // Fetch leaderboard data with all users
+  // Fetch leaderboard data using the get_leaderboard function
   const fetchLeaderboardData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // First, get all profiles to ensure we have every registered user
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url');
+      // Call the get_leaderboard function to get all users with their data
+      const { data, error: fetchError } = await supabase
+        .rpc('get_leaderboard');
       
-      if (profilesError) {
-        console.error('Error fetching profiles data:', profilesError);
-        setError('Failed to load user profiles');
-        throw profilesError;
+      if (fetchError) {
+        console.error('Error fetching leaderboard data:', fetchError);
+        setError('Failed to load leaderboard data');
+        throw fetchError;
       }
 
-      // Then get learning time data for users who have it
-      const { data: learningTimeData, error: learningTimeError } = await supabase
-        .from('learning_time')
-        .select(`
-          id,
-          user_id,
-          total_minutes,
-          streak_days
-        `);
-      
-      if (learningTimeError) {
-        console.error('Error fetching learning time data:', learningTimeError);
-        setError('Failed to load learning time data');
-        throw learningTimeError;
-      }
-
-      // Create a map of profiles by id for easy lookup
-      const profilesMap = new Map();
-      if (profilesData && Array.isArray(profilesData)) {
-        profilesData.forEach(profile => {
-          profilesMap.set(profile.id, profile);
-        });
-      }
-
-      // Create a map of learning time data by user_id
-      const learningTimeMap = new Map();
-      if (learningTimeData && Array.isArray(learningTimeData)) {
-        learningTimeData.forEach(lt => {
-          learningTimeMap.set(lt.user_id, lt);
-        });
-      }
-
-      // Combine data from both sources to create the complete leaderboard
-      let allUsers: LeaderboardUser[] = [];
-      
-      // Add all profiles, with learning time data if available
-      if (profilesData && Array.isArray(profilesData)) {
-        allUsers = profilesData.map(profile => {
-          const learningTime = learningTimeMap.get(profile.id);
-          
-          return {
-            id: profile.id,
-            user_id: profile.id,
-            total_minutes: learningTime ? learningTime.total_minutes || 0 : 0,
-            streak_days: learningTime ? learningTime.streak_days || 0 : 0,
-            full_name: profile.full_name,
-            avatar_url: profile.avatar_url,
-            email: profile.id === user?.id ? user.email : 'Email hidden', // Only show email for current user
-            xp_points: (learningTime ? learningTime.total_minutes || 0 : 0) * 10 // Calculate XP based on minutes
-          };
-        });
-      }
-      
-      console.log('All users data loaded:', allUsers.length, 'users');
-      setLeaderboardData(allUsers);
+      if (data) {
+        // Process the data - hide emails for users that are not the current user
+        const processedData = data.map(item => ({
+          ...item,
+          email: user && item.user_id === user.id ? item.email : 'Email hidden'
+        }));
         
-      // Find user's rank if logged in
-      if (user) {
-        const userIndex = activeTab === 'time' 
-          ? allUsers.sort((a, b) => (b.total_minutes || 0) - (a.total_minutes || 0)).findIndex(item => item.user_id === user.id)
-          : activeTab === 'xp'
-            ? allUsers.sort((a, b) => b.xp_points - a.xp_points).findIndex(item => item.user_id === user.id)
-            : allUsers.sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0)).findIndex(item => item.user_id === user.id);
-            
-        if (userIndex !== -1) {
-          setUserRank(userIndex + 1);
+        console.log('Leaderboard data loaded:', processedData.length, 'users');
+        setLeaderboardData(processedData);
+        setTotalUsers(processedData.length);
+        
+        // Find user's rank if logged in
+        if (user) {
+          const userIndex = getSortedData(processedData, activeTab).findIndex(item => item.user_id === user.id);
+          if (userIndex !== -1) {
+            setUserRank(userIndex + 1);
+          }
         }
       }
-      setTotalUsers(allUsers.length);
-      
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
       setError('Failed to load leaderboard data. Please try again later.');
@@ -135,7 +84,7 @@ export default function LeaderBoard() {
   // Update rank when changing tabs
   useEffect(() => {
     if (user && leaderboardData.length > 0) {
-      const sortedData = getSortedData();
+      const sortedData = getSortedData(leaderboardData, activeTab);
       const userIndex = sortedData.findIndex(item => item.user_id === user.id);
       if (userIndex !== -1) {
         setUserRank(userIndex + 1);
@@ -207,8 +156,8 @@ export default function LeaderBoard() {
     }
   };
 
-  const formatTime = (minutes: number | null) => {
-    if (!minutes) return '0 min';
+  const formatTime = (minutes: number) => {
+    if (minutes === 0) return '0 min';
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -244,15 +193,20 @@ export default function LeaderBoard() {
   };
 
   // Helper to sort data based on active tab
-  const getSortedData = () => {
-    if (activeTab === 'time') {
-      return [...leaderboardData].sort((a, b) => (b.total_minutes || 0) - (a.total_minutes || 0));
-    } else if (activeTab === 'streak') {
-      return [...leaderboardData].sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0));
-    } else if (activeTab === 'xp') {
-      return [...leaderboardData].sort((a, b) => b.xp_points - a.xp_points);
+  const getSortedData = (data: LeaderboardUser[], tab: string) => {
+    if (tab === 'time') {
+      return [...data].sort((a, b) => b.total_minutes - a.total_minutes);
+    } else if (tab === 'streak') {
+      return [...data].sort((a, b) => b.streak_days - a.streak_days);
+    } else if (tab === 'xp') {
+      return [...data].sort((a, b) => b.xp_points - a.xp_points);
     }
-    return leaderboardData;
+    return data;
+  };
+
+  // Get the data sorted according to the active tab
+  const getSortedCurrentData = () => {
+    return getSortedData(leaderboardData, activeTab);
   };
 
   return (
@@ -339,7 +293,7 @@ export default function LeaderBoard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {getSortedData().map((userData, index) => (
+                        {getSortedCurrentData().map((userData, index) => (
                           <TableRow 
                             key={userData.id} 
                             className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
@@ -437,57 +391,55 @@ export default function LeaderBoard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[...leaderboardData]
-                          .sort((a, b) => b.xp_points - a.xp_points)
-                          .map((userData, index) => (
-                            <TableRow 
-                              key={userData.id} 
-                              className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
-                            >
-                              <TableCell className="font-medium">
-                                {index < 3 ? (
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
-                                    <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
-                                  </div>
-                                ) : (
-                                  <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={userData.avatar_url || undefined} />
-                                  <AvatarFallback className="bg-levelup-purple text-white">
-                                    {getInitials(userData)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium flex items-center gap-1">
-                                    {getDisplayName(userData)}
-                                    {userData.total_minutes === 0 && (
-                                      <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
-                                        <UserPlus className="h-3 w-3 mr-0.5" /> New
-                                      </span>
-                                    )}
-                                  </div>
-                                  {isCurrentUser(userData) && (
-                                    <span className="text-xs text-levelup-purple">(You)</span>
+                        {getSortedData(leaderboardData, 'xp').map((userData, index) => (
+                          <TableRow 
+                            key={userData.id} 
+                            className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
+                          >
+                            <TableCell className="font-medium">
+                              {index < 3 ? (
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
+                                  <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                </div>
+                              ) : (
+                                <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={userData.avatar_url || undefined} />
+                                <AvatarFallback className="bg-levelup-purple text-white">
+                                  {getInitials(userData)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium flex items-center gap-1">
+                                  {getDisplayName(userData)}
+                                  {userData.total_minutes === 0 && (
+                                    <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
+                                      <UserPlus className="h-3 w-3 mr-0.5" /> New
+                                    </span>
                                   )}
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-levelup-gray text-sm">
-                                <div className="flex items-center">
-                                  <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
-                                  {userData.email}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                <div className="flex items-center justify-end">
-                                  <Zap className="h-4 w-4 mr-1 text-yellow-500" />
-                                  {formatXP(userData.xp_points)}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                {isCurrentUser(userData) && (
+                                  <span className="text-xs text-levelup-purple">(You)</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-levelup-gray text-sm">
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
+                                {userData.email}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              <div className="flex items-center justify-end">
+                                <Zap className="h-4 w-4 mr-1 text-yellow-500" />
+                                {formatXP(userData.xp_points)}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
@@ -535,60 +487,58 @@ export default function LeaderBoard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[...leaderboardData]
-                          .sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0))
-                          .map((userData, index) => (
-                            <TableRow 
-                              key={userData.id} 
-                              className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
-                            >
-                              <TableCell className="font-medium">
-                                {index < 3 ? (
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
-                                    <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
-                                  </div>
-                                ) : (
-                                  <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={userData.avatar_url || undefined} />
-                                  <AvatarFallback className="bg-levelup-purple text-white">
-                                    {getInitials(userData)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium flex items-center gap-1">
-                                    {getDisplayName(userData)}
-                                    {userData.total_minutes === 0 && (
-                                      <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
-                                        <UserPlus className="h-3 w-3 mr-0.5" /> New
-                                      </span>
-                                    )}
-                                  </div>
-                                  {isCurrentUser(userData) && (
-                                    <span className="text-xs text-levelup-purple">(You)</span>
+                        {getSortedData(leaderboardData, 'streak').map((userData, index) => (
+                          <TableRow 
+                            key={userData.id} 
+                            className={isCurrentUser(userData) ? 'bg-levelup-light-purple/20' : ''}
+                          >
+                            <TableCell className="font-medium">
+                              {index < 3 ? (
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getMedalBg(index)}`}>
+                                  <Medal className={`h-5 w-5 ${getMedalColor(index)}`} />
+                                </div>
+                              ) : (
+                                <span className="flex items-center justify-center w-8 h-8">{index + 1}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={userData.avatar_url || undefined} />
+                                <AvatarFallback className="bg-levelup-purple text-white">
+                                  {getInitials(userData)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium flex items-center gap-1">
+                                  {getDisplayName(userData)}
+                                  {userData.total_minutes === 0 && (
+                                    <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
+                                      <UserPlus className="h-3 w-3 mr-0.5" /> New
+                                    </span>
                                   )}
                                 </div>
-                              </TableCell>
-                              <TableCell className="text-levelup-gray text-sm">
-                                <div className="flex items-center">
-                                  <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
-                                  {userData.email}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                {userData.streak_days || 0} days
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                <div className="flex items-center justify-end">
-                                  <Zap className="h-3.5 w-3.5 mr-1 text-yellow-500" />
-                                  {formatXP(userData.xp_points)}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                {isCurrentUser(userData) && (
+                                  <span className="text-xs text-levelup-purple">(You)</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-levelup-gray text-sm">
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3 mr-1 text-levelup-gray/70" />
+                                {userData.email}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {userData.streak_days} days
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              <div className="flex items-center justify-end">
+                                <Zap className="h-3.5 w-3.5 mr-1 text-yellow-500" />
+                                {formatXP(userData.xp_points)}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
