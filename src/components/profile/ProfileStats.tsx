@@ -15,6 +15,11 @@ export default function ProfileStats({ totalMinutes, totalCourses, totalPoints }
     return `${hours}h ${mins}m`;
   };
 
+  const formatXP = (xp: number) => {
+    if (xp === undefined || xp === null) return "0";
+    return xp.toLocaleString();
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <div className="bg-levelup-light-purple/30 p-4 rounded-lg">
@@ -48,7 +53,7 @@ export default function ProfileStats({ totalMinutes, totalCourses, totalPoints }
           </div>
           <div className="ml-3">
             <div className="text-levelup-gray text-sm">XP Earned</div>
-            <div className="font-bold">{totalPoints} XP</div>
+            <div className="font-bold">{formatXP(totalPoints)} XP</div>
           </div>
         </div>
       </div>

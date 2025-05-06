@@ -56,9 +56,11 @@ const handler = async (req: Request): Promise<Response> => {
     const today = new Date().toISOString();
     let updatedStreak = 0;
     let updatedTotalMinutes = minutesSpent;
+    let updatedXpPoints = minutesSpent * 10; // Calculate XP based on minutes
     
     if (existingRecord) {
       updatedTotalMinutes = existingRecord.total_minutes + minutesSpent;
+      updatedXpPoints = updatedTotalMinutes * 10; // Update total XP based on total minutes
       
       // Check if we need to update the streak
       const lastUpdateDate = new Date(existingRecord.last_streak_update);
@@ -135,7 +137,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true,
         totalMinutes: updatedTotalMinutes,
-        streak: updatedStreak
+        streak: updatedStreak,
+        xpPoints: updatedXpPoints // Include XP in the response
       }),
       {
         status: 200,
