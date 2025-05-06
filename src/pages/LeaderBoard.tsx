@@ -8,7 +8,7 @@ import {
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from '@/components/ui/table';
-import { Medal, Trophy, Clock, Users, Award, Mail, Zap } from 'lucide-react';
+import { Medal, Trophy, Clock, Users, Award, Mail, Zap, UserPlus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,8 @@ import { Button } from '@/components/ui/button';
 type LeaderboardUser = {
   id: string;
   user_id: string;
-  total_minutes: number;
-  streak_days: number;
+  total_minutes: number | null;
+  streak_days: number | null;
   full_name: string | null;
   avatar_url: string | null;
   email: string;
@@ -40,41 +40,89 @@ export default function LeaderBoard() {
       setError(null);
       
       // Call the database function we created
-      const { data, error } = await supabase.rpc('get_leaderboard');
+      const { data: leaderboardData, error: leaderboardError } = await supabase.rpc('get_leaderboard');
       
-      if (error) {
-        console.error('Error fetching leaderboard data:', error);
+      if (leaderboardError) {
+        console.error('Error fetching leaderboard data:', leaderboardError);
         setError('Failed to load leaderboard data');
-        throw error;
+        throw leaderboardError;
       }
 
-      if (data && Array.isArray(data) && data.length > 0) {
-        console.log('Leaderboard data loaded:', data.length, 'users');
-        
-        // Process data to ensure all users have XP (even if zero)
-        const processedData = data.map(item => ({
-          ...item,
-          xp_points: item.total_minutes * 10 // Calculate XP based on minutes (10 XP per minute)
-        }));
-        
-        setLeaderboardData(processedData);
-        
-        // Find user's rank
-        if (user) {
-          const userIndex = processedData.findIndex(item => item.user_id === user.id);
-          if (userIndex !== -1) {
-            setUserRank(userIndex + 1);
-          }
-        }
-        setTotalUsers(processedData.length);
-      } else {
-        console.log('No leaderboard data found');
-        setLeaderboardData([]);
+      // Fetch all registered users to ensure we include everyone
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url');
+      
+      if (profilesError) {
+        console.error('Error fetching profiles data:', profilesError);
       }
+
+      // Process data to create a complete leaderboard
+      let allUsers: LeaderboardUser[] = [];
+      
+      // Add users with learning time data
+      if (leaderboardData && Array.isArray(leaderboardData)) {
+        allUsers = leaderboardData.map(item => ({
+          ...item,
+          total_minutes: item.total_minutes || 0,
+          streak_days: item.streak_days || 0,
+          xp_points: (item.total_minutes || 0) * 10 // Calculate XP based on minutes
+        }));
+      }
+      
+      // Add users without learning time data (new registrations)
+      if (profilesData && Array.isArray(profilesData)) {
+        profilesData.forEach(profile => {
+          if (!allUsers.some(u => u.user_id === profile.id)) {
+            // Fetch email for this profile from auth.users
+            const fetchUserEmail = async () => {
+              try {
+                const { data: userData, error: userError } = await supabase
+                  .from('auth')
+                  .select('email')
+                  .eq('id', profile.id)
+                  .single();
+                
+                return userError ? 'Email unavailable' : (userData?.email || 'Email unavailable');
+              } catch (e) {
+                return 'Email unavailable';
+              }
+            };
+
+            allUsers.push({
+              id: profile.id,
+              user_id: profile.id,
+              total_minutes: 0,
+              streak_days: 0,
+              full_name: profile.full_name,
+              avatar_url: profile.avatar_url,
+              email: fetchUserEmail() as string, // Temporary placeholder
+              xp_points: 0
+            });
+          }
+        });
+      }
+      
+      console.log('All users data loaded:', allUsers.length, 'users');
+      setLeaderboardData(allUsers);
+        
+      // Find user's rank if logged in
+      if (user) {
+        const userIndex = activeTab === 'time' 
+          ? allUsers.sort((a, b) => (b.total_minutes || 0) - (a.total_minutes || 0)).findIndex(item => item.user_id === user.id)
+          : activeTab === 'xp'
+            ? allUsers.sort((a, b) => b.xp_points - a.xp_points).findIndex(item => item.user_id === user.id)
+            : allUsers.sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0)).findIndex(item => item.user_id === user.id);
+            
+        if (userIndex !== -1) {
+          setUserRank(userIndex + 1);
+        }
+      }
+      setTotalUsers(allUsers.length);
+      
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
       setError('Failed to load leaderboard data. Please try again later.');
-      setLeaderboardData([]);
     } finally {
       setLoading(false);
     }
@@ -84,6 +132,17 @@ export default function LeaderBoard() {
   useEffect(() => {
     fetchLeaderboardData();
   }, [supabase, user]);
+
+  // Update rank when changing tabs
+  useEffect(() => {
+    if (user && leaderboardData.length > 0) {
+      const sortedData = getSortedData();
+      const userIndex = sortedData.findIndex(item => item.user_id === user.id);
+      if (userIndex !== -1) {
+        setUserRank(userIndex + 1);
+      }
+    }
+  }, [activeTab, leaderboardData, user]);
 
   // Set up real-time subscription to learning_time table
   useEffect(() => {
@@ -97,6 +156,7 @@ export default function LeaderBoard() {
           console.log('Real-time update received:', payload);
           // Refresh the leaderboard data when changes occur
           fetchLeaderboardData();
+          toast.info("Leaderboard updated with new data!");
         }
       )
       .subscribe();
@@ -107,7 +167,7 @@ export default function LeaderBoard() {
     };
   }, [supabase]);
 
-  // Subscribe to changes on the profiles table
+  // Subscribe to changes on the profiles table to catch new user registrations
   useEffect(() => {
     const profilesChannel = supabase
       .channel('profiles_changes')
@@ -116,6 +176,9 @@ export default function LeaderBoard() {
         { event: '*', schema: 'public', table: 'profiles' },
         (payload) => {
           console.log('Profile update received:', payload);
+          if (payload.eventType === 'INSERT') {
+            toast.success("New user joined! Refreshing leaderboard...");
+          }
           // Refresh the leaderboard data when profiles change
           fetchLeaderboardData();
         }
@@ -145,7 +208,8 @@ export default function LeaderBoard() {
     }
   };
 
-  const formatTime = (minutes: number) => {
+  const formatTime = (minutes: number | null) => {
+    if (!minutes) return '0 min';
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -169,7 +233,7 @@ export default function LeaderBoard() {
       }
       return nameParts[0][0];
     }
-    return user.email[0].toUpperCase();
+    return user.email ? user.email[0].toUpperCase() : 'U';
   };
 
   const isCurrentUser = (leaderboardUser: LeaderboardUser) => {
@@ -183,9 +247,9 @@ export default function LeaderBoard() {
   // Helper to sort data based on active tab
   const getSortedData = () => {
     if (activeTab === 'time') {
-      return [...leaderboardData].sort((a, b) => b.total_minutes - a.total_minutes);
+      return [...leaderboardData].sort((a, b) => (b.total_minutes || 0) - (a.total_minutes || 0));
     } else if (activeTab === 'streak') {
-      return [...leaderboardData].sort((a, b) => b.streak_days - a.streak_days);
+      return [...leaderboardData].sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0));
     } else if (activeTab === 'xp') {
       return [...leaderboardData].sort((a, b) => b.xp_points - a.xp_points);
     }
@@ -201,14 +265,22 @@ export default function LeaderBoard() {
             <div className="flex items-center mb-6">
               <Trophy className="h-6 w-6 text-levelup-purple mr-2" />
               <h1 className="text-2xl font-bold text-levelup-purple">Leaderboard</h1>
-              {userRank && (
-                <div className="ml-auto flex items-center gap-2 bg-levelup-light-purple/30 px-3 py-1 rounded-full">
-                  <Award className="h-4 w-4 text-levelup-purple" />
-                  <span className="text-sm font-medium text-levelup-purple">
-                    Your Rank: #{userRank}
-                  </span>
+              
+              <div className="ml-auto flex items-center gap-2">
+                {userRank && (
+                  <div className="bg-levelup-light-purple/30 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium text-levelup-purple flex items-center">
+                      <Award className="h-4 w-4 mr-1" />
+                      Your Rank: #{userRank}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="text-sm text-levelup-gray flex items-center ml-2">
+                  <Users className="h-4 w-4 mr-1" />
+                  {totalUsers} users
                 </div>
-              )}
+              </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -252,8 +324,8 @@ export default function LeaderBoard() {
                 ) : leaderboardData.length === 0 ? (
                   <div className="text-center py-8 text-levelup-gray">
                     <Users className="h-12 w-12 mx-auto mb-3 text-levelup-purple/50" />
-                    <p>No learning data recorded yet.</p>
-                    <p className="text-sm mt-1">Start learning to appear on the leaderboard!</p>
+                    <p>No users found.</p>
+                    <p className="text-sm mt-1">Invite others to join the platform!</p>
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-lg border">
@@ -290,7 +362,14 @@ export default function LeaderBoard() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">{getDisplayName(userData)}</div>
+                                <div className="font-medium flex items-center gap-1">
+                                  {getDisplayName(userData)}
+                                  {userData.total_minutes === 0 && (
+                                    <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
+                                      <UserPlus className="h-3 w-3 mr-0.5" /> New
+                                    </span>
+                                  )}
+                                </div>
                                 {isCurrentUser(userData) && (
                                   <span className="text-xs text-levelup-purple">(You)</span>
                                 )}
@@ -383,7 +462,14 @@ export default function LeaderBoard() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{getDisplayName(userData)}</div>
+                                  <div className="font-medium flex items-center gap-1">
+                                    {getDisplayName(userData)}
+                                    {userData.total_minutes === 0 && (
+                                      <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
+                                        <UserPlus className="h-3 w-3 mr-0.5" /> New
+                                      </span>
+                                    )}
+                                  </div>
                                   {isCurrentUser(userData) && (
                                     <span className="text-xs text-levelup-purple">(You)</span>
                                   )}
@@ -451,7 +537,7 @@ export default function LeaderBoard() {
                       </TableHeader>
                       <TableBody>
                         {[...leaderboardData]
-                          .sort((a, b) => b.streak_days - a.streak_days)
+                          .sort((a, b) => (b.streak_days || 0) - (a.streak_days || 0))
                           .map((userData, index) => (
                             <TableRow 
                               key={userData.id} 
@@ -474,7 +560,14 @@ export default function LeaderBoard() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{getDisplayName(userData)}</div>
+                                  <div className="font-medium flex items-center gap-1">
+                                    {getDisplayName(userData)}
+                                    {userData.total_minutes === 0 && (
+                                      <span className="text-xs bg-blue-100 text-blue-600 px-1 rounded flex items-center">
+                                        <UserPlus className="h-3 w-3 mr-0.5" /> New
+                                      </span>
+                                    )}
+                                  </div>
                                   {isCurrentUser(userData) && (
                                     <span className="text-xs text-levelup-purple">(You)</span>
                                   )}
@@ -487,7 +580,7 @@ export default function LeaderBoard() {
                                 </div>
                               </TableCell>
                               <TableCell className="text-right font-medium">
-                                {userData.streak_days} days
+                                {userData.streak_days || 0} days
                               </TableCell>
                               <TableCell className="text-right font-medium">
                                 <div className="flex items-center justify-end">
