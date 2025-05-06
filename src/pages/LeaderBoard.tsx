@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/layout/Navbar';
@@ -74,21 +73,7 @@ export default function LeaderBoard() {
       if (profilesData && Array.isArray(profilesData)) {
         profilesData.forEach(profile => {
           if (!allUsers.some(u => u.user_id === profile.id)) {
-            // Fetch email for this profile from auth.users
-            const fetchUserEmail = async () => {
-              try {
-                const { data: userData, error: userError } = await supabase
-                  .from('auth')
-                  .select('email')
-                  .eq('id', profile.id)
-                  .single();
-                
-                return userError ? 'Email unavailable' : (userData?.email || 'Email unavailable');
-              } catch (e) {
-                return 'Email unavailable';
-              }
-            };
-
+            // Check if we already have user data for this profile
             allUsers.push({
               id: profile.id,
               user_id: profile.id,
@@ -96,7 +81,7 @@ export default function LeaderBoard() {
               streak_days: 0,
               full_name: profile.full_name,
               avatar_url: profile.avatar_url,
-              email: fetchUserEmail() as string, // Temporary placeholder
+              email: 'Email unavailable', // Placeholder since we can't directly query auth.users
               xp_points: 0
             });
           }
