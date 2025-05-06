@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/layout/Navbar';
@@ -20,7 +21,7 @@ type LeaderboardUser = {
   full_name: string | null;
   avatar_url: string | null;
   email: string;
-  xp_points: number;
+  xp_points: number; // Added this property to the type
 };
 
 export default function LeaderBoard() {

@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Clock, Calendar, Flame, Trophy } from "lucide-react";
+import { Clock, Calendar, Flame, Trophy, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +22,7 @@ export default function LearningTimeTracker() {
   const [sessionStarted, setSessionStarted] = useState<Date | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [xpPoints, setXpPoints] = useState(0);
 
   // Fetch learning time data from the database
   useEffect(() => {
@@ -157,6 +157,12 @@ export default function LearningTimeTracker() {
     return `${mins}m`;
   };
 
+  // Add a helper function to format XP
+  const formatXP = (xp: number) => {
+    if (xp === undefined || xp === null) return '0';
+    return xp.toLocaleString();
+  };
+
   // Convert minutes to days and hours
   const getTimeEquivalent = (minutes: number) => {
     if (minutes < 60) return `${minutes} minutes`;
@@ -174,6 +180,16 @@ export default function LearningTimeTracker() {
   const getTotalMinutes = () => {
     return timeData?.total_minutes || 0;
   };
+
+  // Add a function to get XP points
+  const getXPPoints = () => {
+    return getTotalMinutes() * 10; // Calculate XP as 10 per minute
+  };
+
+  useEffect(() => {
+    // Update XP points whenever total minutes change
+    setXpPoints(getXPPoints());
+  }, [timeData?.total_minutes]);
 
   return (
     <Card className="shadow-sm">
@@ -216,6 +232,17 @@ export default function LearningTimeTracker() {
             
             <div className="text-xs text-right text-levelup-gray">
               {getTimeEquivalent(getTotalMinutes())} of learning
+            </div>
+            
+            {/* Add XP points display */}
+            <div className="pt-2 border-t">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm">XP Earned</span>
+                </div>
+                <span className="font-medium">{formatXP(xpPoints)} XP</span>
+              </div>
             </div>
             
             <div className="pt-2 border-t">
