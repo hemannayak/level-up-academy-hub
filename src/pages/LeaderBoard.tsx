@@ -32,59 +32,73 @@ export default function LeaderBoard() {
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState(0);
 
-  // Fetch leaderboard data using our optimized database function
+  // Fetch leaderboard data with all users
   const fetchLeaderboardData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Call the database function we created
-      const { data: leaderboardData, error: leaderboardError } = await supabase.rpc('get_leaderboard');
-      
-      if (leaderboardError) {
-        console.error('Error fetching leaderboard data:', leaderboardError);
-        setError('Failed to load leaderboard data');
-        throw leaderboardError;
-      }
-
-      // Fetch all registered users to ensure we include everyone
+      // First, get all profiles to ensure we have every registered user
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url');
       
       if (profilesError) {
         console.error('Error fetching profiles data:', profilesError);
+        setError('Failed to load user profiles');
+        throw profilesError;
       }
 
-      // Process data to create a complete leaderboard
-      let allUsers: LeaderboardUser[] = [];
+      // Then get learning time data for users who have it
+      const { data: learningTimeData, error: learningTimeError } = await supabase
+        .from('learning_time')
+        .select(`
+          id,
+          user_id,
+          total_minutes,
+          streak_days
+        `);
       
-      // Add users with learning time data
-      if (leaderboardData && Array.isArray(leaderboardData)) {
-        allUsers = leaderboardData.map(item => ({
-          ...item,
-          total_minutes: item.total_minutes || 0,
-          streak_days: item.streak_days || 0,
-          xp_points: (item.total_minutes || 0) * 10 // Calculate XP based on minutes
-        }));
+      if (learningTimeError) {
+        console.error('Error fetching learning time data:', learningTimeError);
+        setError('Failed to load learning time data');
+        throw learningTimeError;
       }
-      
-      // Add users without learning time data (new registrations)
+
+      // Create a map of profiles by id for easy lookup
+      const profilesMap = new Map();
       if (profilesData && Array.isArray(profilesData)) {
         profilesData.forEach(profile => {
-          if (!allUsers.some(u => u.user_id === profile.id)) {
-            // Check if we already have user data for this profile
-            allUsers.push({
-              id: profile.id,
-              user_id: profile.id,
-              total_minutes: 0,
-              streak_days: 0,
-              full_name: profile.full_name,
-              avatar_url: profile.avatar_url,
-              email: 'Email unavailable', // Placeholder since we can't directly query auth.users
-              xp_points: 0
-            });
-          }
+          profilesMap.set(profile.id, profile);
+        });
+      }
+
+      // Create a map of learning time data by user_id
+      const learningTimeMap = new Map();
+      if (learningTimeData && Array.isArray(learningTimeData)) {
+        learningTimeData.forEach(lt => {
+          learningTimeMap.set(lt.user_id, lt);
+        });
+      }
+
+      // Combine data from both sources to create the complete leaderboard
+      let allUsers: LeaderboardUser[] = [];
+      
+      // Add all profiles, with learning time data if available
+      if (profilesData && Array.isArray(profilesData)) {
+        allUsers = profilesData.map(profile => {
+          const learningTime = learningTimeMap.get(profile.id);
+          
+          return {
+            id: profile.id,
+            user_id: profile.id,
+            total_minutes: learningTime ? learningTime.total_minutes || 0 : 0,
+            streak_days: learningTime ? learningTime.streak_days || 0 : 0,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+            email: profile.id === user?.id ? user.email : 'Email hidden', // Only show email for current user
+            xp_points: (learningTime ? learningTime.total_minutes || 0 : 0) * 10 // Calculate XP based on minutes
+          };
         });
       }
       
@@ -129,7 +143,7 @@ export default function LeaderBoard() {
     }
   }, [activeTab, leaderboardData, user]);
 
-  // Set up real-time subscription to learning_time table
+  // Set up real-time subscriptions
   useEffect(() => {
     // Subscribe to changes on the learning_time table
     const channel = supabase
@@ -205,20 +219,20 @@ export default function LeaderBoard() {
     return xp.toLocaleString();
   };
 
-  const getDisplayName = (user: LeaderboardUser) => {
-    if (user.full_name) return user.full_name;
-    return user.email.split('@')[0];
+  const getDisplayName = (userData: LeaderboardUser) => {
+    if (userData.full_name) return userData.full_name;
+    return userData.email.split('@')[0];
   };
 
-  const getInitials = (user: LeaderboardUser) => {
-    if (user.full_name) {
-      const nameParts = user.full_name.split(' ');
+  const getInitials = (userData: LeaderboardUser) => {
+    if (userData.full_name) {
+      const nameParts = userData.full_name.split(' ');
       if (nameParts.length > 1) {
         return `${nameParts[0][0]}${nameParts[1][0]}`;
       }
       return nameParts[0][0];
     }
-    return user.email ? user.email[0].toUpperCase() : 'U';
+    return userData.email ? userData.email[0].toUpperCase() : 'U';
   };
 
   const isCurrentUser = (leaderboardUser: LeaderboardUser) => {
