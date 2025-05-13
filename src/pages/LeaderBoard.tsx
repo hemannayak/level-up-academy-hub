@@ -120,7 +120,10 @@ export default function LeaderBoard() {
           console.log('Real-time update received:', payload);
           // Refresh the leaderboard data when changes occur
           fetchLeaderboardData();
-          toast.info("Leaderboard updated with new data!");
+          toast({
+            title: 'Update',
+            description: "Leaderboard updated with new data!",
+          });
         }
       )
       .subscribe();
@@ -141,7 +144,10 @@ export default function LeaderBoard() {
         (payload) => {
           console.log('Profile update received:', payload);
           if (payload.eventType === 'INSERT') {
-            toast.success("New user joined! Refreshing leaderboard...");
+            toast({
+              title: 'New User', 
+              description: "New user joined! Refreshing leaderboard..."
+            });
           }
           // Refresh the leaderboard data when profiles change
           fetchLeaderboardData();
