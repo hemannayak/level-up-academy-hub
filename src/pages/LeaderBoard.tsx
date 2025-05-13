@@ -21,7 +21,7 @@ type LeaderboardUser = {
   full_name: string | null;
   avatar_url: string | null;
   email: string;
-  xp_points: number; // Added this property to the type
+  xp_points: number; // Making sure this property is defined in the type
 };
 
 export default function LeaderBoard() {

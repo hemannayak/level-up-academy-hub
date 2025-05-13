@@ -176,6 +176,7 @@ export type Database = {
           full_name: string
           avatar_url: string
           email: string
+          xp_points: number
         }[]
       }
     }
