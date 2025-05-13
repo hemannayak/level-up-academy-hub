@@ -21,9 +21,9 @@ BEGIN
     COALESCE(lt.user_id, p.id) as user_id,
     COALESCE(lt.total_minutes, 0) as total_minutes,
     COALESCE(lt.streak_days, 0) as streak_days,
-    p.full_name,
-    p.avatar_url,
-    u.email,
+    p.full_name::TEXT,
+    p.avatar_url::TEXT,
+    u.email::TEXT,
     COALESCE(lt.total_minutes, 0) * 10 as xp_points
   FROM
     public.profiles p

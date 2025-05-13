@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Medal, Trophy, Clock, Users, Award, Mail, Zap, UserPlus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 
 type LeaderboardUser = {
@@ -39,15 +39,24 @@ export default function LeaderBoard() {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching leaderboard data...');
+      
       // Call the get_leaderboard function to get all users with their data
       const { data, error: fetchError } = await supabase
         .rpc('get_leaderboard');
       
       if (fetchError) {
         console.error('Error fetching leaderboard data:', fetchError);
-        setError('Failed to load leaderboard data');
+        setError(`Failed to load leaderboard data: ${fetchError.message}`);
+        toast({
+          title: 'Error',
+          description: `Failed to load leaderboard data: ${fetchError.message}`,
+          variant: 'destructive'
+        });
         throw fetchError;
       }
+
+      console.log('Leaderboard data received:', data);
 
       if (data) {
         // Process the data - hide emails for users that are not the current user
@@ -58,7 +67,7 @@ export default function LeaderBoard() {
           xp_points: item.xp_points || 0
         }));
         
-        console.log('Leaderboard data loaded:', processedData.length, 'users');
+        console.log('Leaderboard data processed:', processedData.length, 'users');
         setLeaderboardData(processedData);
         setTotalUsers(processedData.length);
         
@@ -69,6 +78,11 @@ export default function LeaderBoard() {
             setUserRank(userIndex + 1);
           }
         }
+
+        toast({
+          title: 'Success',
+          description: `Loaded leaderboard data for ${processedData.length} users`,
+        });
       }
     } catch (error) {
       console.error('Error fetching leaderboard data:', error);
@@ -549,6 +563,19 @@ export default function LeaderBoard() {
                 )}
               </TabsContent>
             </Tabs>
+            
+            {error && (
+              <div className="mt-4 p-4 border border-red-300 bg-red-50 text-red-700 rounded-md">
+                <p className="font-medium">Error: {error}</p>
+                <Button 
+                  onClick={handleRetry}
+                  variant="outline"
+                  className="mt-2 border-red-300 hover:bg-red-100"
+                >
+                  Retry Loading Data
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </main>
